@@ -11,15 +11,17 @@ void EndLogFile();
 void SendLogMessage(int priority, char *fmt, ...);
 void SendLogMessage(char *fmt, ...);
 
-class MethodTrace
+class TraceMethod
 {
+#ifndef DISABLE_LOGGING
 private:
 	char *methodname;
 	int fThreshold;
+#endif
 public:
-	MethodTrace(int threshold, char *fmt, ...);
-	MethodTrace(char *fmt, ...);
-	~MethodTrace();
+	TraceMethod(int threshold, char *fmt, ...);
+	TraceMethod(char *fmt, ...);
+	~TraceMethod();
 };
 
 

@@ -10,18 +10,21 @@ struct KBStateStruct KBState;
 
 void TStars::ClearKBState()
 {
-	MethodTrace trace(90, "TStars::ClearKBState");
+	TraceMethod trace(90, "TStars::ClearKBState");
 	KBState.rightarrow = 
 		KBState.leftarrow = 
 		KBState.uparrow = 
 		KBState.downarrow = 
 		KBState.pageup = 
-		KBState.pagedown = false;
+		KBState.pagedown = 
+		KBState.plus =
+		KBState.minus =
+		KBState.a = false;
 }
 
 TStars::TStars()
 {
-	MethodTrace trace(100, "TStars::TStars");
+	TraceMethod trace(100, "TStars::TStars");
 	ClearKBState();
 
 	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
@@ -41,14 +44,14 @@ TStars::TStars()
 
 TStars::~TStars()
 {
-	MethodTrace trace(100, "TStars::~TStars");
+	TraceMethod trace(100, "TStars::~TStars");
 	SaveSettings();
 	CleanupStars();
 }
 
 void TStars::SetScreenSize(int width, int height)
 {
-	MethodTrace trace(90, "TStars::SetScreenSize");
+	TraceMethod trace(90, "TStars::SetScreenSize");
 	fWidth = width;
 	fHeight = height;
 	fHalfWidth = width / 2;
@@ -57,18 +60,18 @@ void TStars::SetScreenSize(int width, int height)
 
 bool TStars::LoadSettings()
 {
-	MethodTrace trace(90, "TStars::LoadSettings");
+	TraceMethod trace(90, "TStars::LoadSettings");
 	return true;
 }
 
 void TStars::SaveSettings()
 {
-	MethodTrace trace(90, "TStars::SaveSettings");
+	TraceMethod trace(90, "TStars::SaveSettings");
 }
 
 void TStars::CleanupStars()
 {
-	MethodTrace trace(90, "TStars::CleanupStars");
+	TraceMethod trace(90, "TStars::CleanupStars");
 	if (x)
 		free(x);
 	if (y)
@@ -79,7 +82,7 @@ void TStars::CleanupStars()
 
 void TStars::InitStars()
 {
-	MethodTrace trace(90, "TStars::InitStars");
+	TraceMethod trace(90, "TStars::InitStars");
 	SendLogMessage(50, "Starcount = %i", fStarCount);
 	x = (float *)malloc(sizeof(float) * fStarCount); 
 	y = (float *)malloc(sizeof(float) * fStarCount); 
@@ -107,7 +110,7 @@ void TStars::InitStars()
 
 void TStars::ChangeStarCount(int newcount)
 {
-	MethodTrace trace(90, "TStars::ChangeStarCount");
+	TraceMethod trace(90, "TStars::ChangeStarCount");
 	float *temp;
 	if (fBiggestStarCount == 0)
 		fBiggestStarCount = fStarCount;
@@ -139,7 +142,7 @@ void TStars::ChangeStarCount(int newcount)
 
 void TStars::ResetDefaults()
 {
-	MethodTrace trace(90, "TStars::ResetDefaults");
+	TraceMethod trace(90, "TStars::ResetDefaults");
 	CleanupStars();
 	fRadius = 8000;
 	fSpeed = 5 * DELAY;
@@ -152,7 +155,7 @@ void TStars::ResetDefaults()
 
 bool TStars::DrawStars()
 {
-	MethodTrace trace(40, "TStars::DrawStars");
+	TraceMethod trace(40, "TStars::DrawStars");
 	if (!BeforeDraw())
 		return false;
 
@@ -201,7 +204,7 @@ bool TStars::DrawStars()
 
 void TStars::MoveStars()
 {
-	MethodTrace trace(35, "TStars::MoveStars");
+	TraceMethod trace(35, "TStars::MoveStars");
 	int i;
 	for (i = 0; i < fStarCount; i++)
 	{
@@ -231,73 +234,80 @@ void TStars::MoveStars()
 
 void TStars::UpdateSettings()
 {
-	MethodTrace trace(50, "TStars::UpdateSettings");
+	TraceMethod trace(49, "TStars::UpdateSettings");
 	if (KBState.rightarrow)
 	{
+		SendLogMessage(50, "Right arrow, rotate clockwise");
 		fAngle += .01 * DELAY;
 		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 		zspeed = cos(fAngle) * fSpeed;
 	}
 	if (KBState.leftarrow)
 	{
+		SendLogMessage(50, "Left arrow, rotate counterclockwise");
 		fAngle -= .01 * DELAY;
 		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 		zspeed = cos(fAngle) * fSpeed;
 	}
 	if (KBState.uparrow)
 	{
+		SendLogMessage(50, "Up arrow, speed up");
         fSpeed *= 1.05;
 		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 		zspeed = cos(fAngle) * fSpeed;
 	}
 	if (KBState.downarrow)
 	{
+		SendLogMessage(50, "Down arrow, slow down");
         fSpeed /= 1.05;
 		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 		zspeed = cos(fAngle) * fSpeed;
 	}
 	if (KBState.pageup)
 	{
+		SendLogMessage(50, "Page up, more stars");
 		ChangeStarCount((int)(fStarCount * 1.1));
 	}
 	if (KBState.pagedown)
 	{
+		SendLogMessage(50, "Page down, less stars");
 		ChangeStarCount((int)(fStarCount / 1.1));
+	}
+	{
+		static bool last = false;
+		if (!last && KBState.plus)
+		{
+			SendLogMessage(50, "Keypad plus, radius bigger");
+			fRadius *= 1.03;
+		}
+		last = KBState.plus;
+	}
+	{
+		static bool last = false;
+		if (!last && KBState.minus)
+		{
+			SendLogMessage(50, "Keypad minus, radius smaller");
+			fRadius /= 1.03;
+		}
+		last = KBState.minus;
+	}
+	{
+		static bool last = false;
+		if (!last && KBState.a)
+		{
+			if (fAntialias) fAntialias = false; else fAntialias = true;
+//			fAntialias = !fAntialias; // why doesn't this work?
+			SendLogMessage(50, "Antialiasing %sabled", fAntialias ? "en" : "dis");
+		}
+		last = KBState.a;
 	}
 };
 
 
-void TStars::OnKeyA()
-{
-	MethodTrace trace(90, "TStars::OnKeyA");
-	if (fAntialias == true)
-	{
-		SendLogMessage("Antialiasing disabled");
-		fAntialias = false;
-	}
-	else
-	{
-		SendLogMessage("Antialiasing enabled");
-		fAntialias = true;
-	}
-}
-
 void TStars::OnKeyDel()
 {
-	MethodTrace trace(90, "TStars::OnKeyDel");
+	TraceMethod trace(90, "TStars::OnKeyDel");
 	ResetDefaults();
-}
-
-void TStars::OnKeypadPlus()
-{
-	MethodTrace trace(90, "TStars::OnKeypadPlus");
-	fRadius *= 1.03;
-}
-
-void TStars::OnKeypadMinus()
-{
-	MethodTrace trace(90, "TStars::OnKeypadMinus");
-	fRadius /= 1.03;
 }
 
 

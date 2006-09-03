@@ -17,10 +17,6 @@ public:
    	{
 	}
 
-	~TStarsReg()
-	{
-	}
-	
 	virtual bool LoadSettings();
 	virtual void SaveSettings();
 };

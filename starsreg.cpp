@@ -9,7 +9,7 @@
 	
 bool TStarsReg::LoadSettings()
 {
-	MethodTrace trace(90, "TStarsReg::LoadSettings()");
+	TraceMethod trace(90, "TStarsReg::LoadSettings()");
 	int StarCount = fStarCount;
 	float Radius = fRadius;
 	float Speed = fSpeed;
@@ -37,7 +37,7 @@ bool TStarsReg::LoadSettings()
 }
 void TStarsReg::SaveSettings()
 {
-	MethodTrace trace(90, "TStarsReg::SaveSettings()");
+	TraceMethod trace(90, "TStarsReg::SaveSettings()");
 	HKEY key;
 	DWORD lpdw;
 
@@ -56,7 +56,7 @@ void TStarsReg::SaveSettings()
 
 void TStarsReg::reg_get_val(HKEY key, char *str, int *val)
 {
-	MethodTrace trace(90, "TStarsReg::reg_get_val(int)");
+	TraceMethod trace(90, "TStarsReg::reg_get_val(int)");
     DWORD dsize = sizeof(int);
     DWORD dwtype = 0;
     int tmp;
@@ -67,13 +67,13 @@ void TStarsReg::reg_get_val(HKEY key, char *str, int *val)
 
 void TStarsReg::reg_set_val(HKEY key, char *str, int val)
 {
-	MethodTrace trace(90, "TStarsReg::reg_set_val(int)");
+	TraceMethod trace(90, "TStarsReg::reg_set_val(int)");
     RegSetValueEx(key, str, 0, REG_DWORD, (BYTE*)&val, sizeof(val));
 }
 
 void TStarsReg::reg_get_val(HKEY key, char *str, float *val)
 {
-	MethodTrace trace(90, "TStarsReg::reg_set_val(float)");
+	TraceMethod trace(90, "TStarsReg::reg_set_val(float)");
     DWORD dsize = sizeof(int);
     DWORD dwtype = 0;
     int tmp;
@@ -84,7 +84,7 @@ void TStarsReg::reg_get_val(HKEY key, char *str, float *val)
 
 void TStarsReg::reg_set_val(HKEY key, char *str, float val)
 {
-	MethodTrace trace(90, "TStarsReg::reg_set_val(float)");
+	TraceMethod trace(90, "TStarsReg::reg_set_val(float)");
     int tmp = (int)val;
     RegSetValueEx(key, str, 0, REG_DWORD, (BYTE*)&tmp, sizeof(tmp));
 }

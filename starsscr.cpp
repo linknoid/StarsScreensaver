@@ -84,6 +84,7 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 {
 	if (lParam & (1 << 31))
 	{ // key released
+		SendLogMessage("Key released %i", wParam);
 		switch (wParam)
 		{
 			case 33: // Page Up
@@ -108,19 +109,20 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 				Stars->OnKeyDel();
 				break;
 			case 65: // 'a' key
-				Stars->OnKeyA();
+				KBState.a = 0;
 				break;
 			case 107: // Keypad +
-				Stars->OnKeypadPlus();
+				KBState.plus = 0;
 				break;
 			case 109: // Keypad -
-				Stars->OnKeypadMinus();
+				KBState.minus = 0;
 				break;
 			default:
 				return false;
 		} 
 	} else
 	{ // key pressed
+		SendLogMessage("Key pressed %i", wParam);
 		switch (wParam)
 		{
 			case 33: // Page Up
@@ -141,10 +143,14 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 			case 40: // Down Arrow
 				KBState.downarrow = 1;
 				break;
-			case 46: // Delete key
 			case 65: // 'a' key
+				KBState.a = 1;
+				break;
 			case 107: // Keypad +
+				KBState.plus = 1;
 			case 109: // Keypad -
+				KBState.minus = 1;
+			case 46: // Delete key
 				break;
 			default:
 				return false;

@@ -11,7 +11,7 @@ extern const int PriorityForLogging;
 extern struct KBStateStruct
 {
 	bool rightarrow, leftarrow, uparrow, downarrow;
-	bool pageup, pagedown;
+	bool pageup, pagedown, a, plus, minus;
 } KBState;
 
 
@@ -52,12 +52,7 @@ public:
 	virtual bool BeforeDraw() = 0;
 	virtual bool AfterDraw() = 0;
 
-
-	void OnKeyA();
 	void OnKeyDel();
-	void OnKeypadPlus();
-	void OnKeypadMinus();
-
 };
 
 #endif // _STARS_H_

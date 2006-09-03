@@ -16,26 +16,26 @@ final: stars.scr
 	strip stars.scr
 
 
-stars.scr: ${OBJS}
+stars.scr: ${OBJS} makefile
 	g++ ${OBJS} ${GLLIBS} -o stars.scr 
 
 
-stars.o: stars.cpp stars.h ${LOGHEADER}
+stars.o: stars.cpp stars.h ${LOGHEADER} makefile
 	${CC} -c stars.cpp -o stars.o
 
-glstars.o: glstars.cpp glstars.h stars.h ${LOGHEADER}
+glstars.o: glstars.cpp glstars.h stars.h ${LOGHEADER} makefile
 	${CC} -c glstars.cpp -o glstars.o
 
-starsreg.o: starsreg.cpp starsreg.h glstars.h stars.h ${LOGHEADER}
+starsreg.o: starsreg.cpp starsreg.h glstars.h stars.h ${LOGHEADER} makefile
 	${CC} -c starsreg.cpp -o starsreg.o
 
-starsscr.o: starsscr.cpp starsreg.h glstars.h stars.h ${LOGHEADER}
+starsscr.o: starsscr.cpp starsreg.h glstars.h stars.h ${LOGHEADER} makefile
 	${CC} -c starsscr.cpp -o starsscr.o
 
-consts.o: consts.c
+consts.o: consts.c makefile
 	${CC} -c consts.c -o consts.o
 
-resources.cof: stars.ico stars.rc stars.def
+resources.cof: stars.ico stars.rc stars.def makefile
 	windres -i stars.rc -o resources.cof -O coff -F pe-i386
 
 logging/logging.o: logging/logging.cpp ${LOGHEADER} makefile

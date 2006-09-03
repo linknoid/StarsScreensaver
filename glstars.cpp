@@ -6,7 +6,7 @@
 
 TGLStars::TGLStars(HWND hWnd)
 {
-	MethodTrace trace(100, "TGLStars::TGLStars()");
+	TraceMethod trace(100, "TGLStars::TGLStars()");
 	RECT rect;
 	GetClientRect(hWnd, &rect);
 	SendLogMessage("Screen size %i x %i", (int)rect.right - rect.left, (int)rect.bottom - rect.top);
@@ -19,13 +19,13 @@ TGLStars::TGLStars(HWND hWnd)
 
 TGLStars::~TGLStars()
 {
-	MethodTrace trace(100, "TGLStars::~TGLStars()");
+	TraceMethod trace(100, "TGLStars::~TGLStars()");
 	KillGL();
 }
 
 void TGLStars::DrawCircle(int x, int y, float radius, int c)
 {
-//	MethodTrace trace(10, "TGLStars::DrawCircle()");
+//	TraceMethod trace(10, "TGLStars::DrawCircle()");
 	static float color;
 	static int i, j, r;
 	r = (int) radius;
@@ -106,7 +106,7 @@ void TGLStars::DrawCircle(int x, int y, float radius, int c)
 
 bool TGLStars::BeforeDraw()
 {
-	MethodTrace trace(50, "TGLStars::BeforeDraw()");
+	TraceMethod trace(40, "TGLStars::BeforeDraw()");
 //	wglMakeCurrent(fDC, fRC);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_LINES);
@@ -115,16 +115,17 @@ bool TGLStars::BeforeDraw()
 
 bool TGLStars::AfterDraw()
 {
-	MethodTrace trace(50, "TGLStars::AfterDraw()");
+	TraceMethod trace(40, "TGLStars::AfterDraw()");
 	glEnd();
 	glFinish();
 	SwapBuffers(fDC);
+	return true;
 }
 
 
 void TGLStars::InitGL(HWND hWnd)
 {
-	MethodTrace trace(90, "TGLStars::InitGL()");
+	TraceMethod trace(90, "TGLStars::InitGL()");
 	PIXELFORMATDESCRIPTOR pfd;
 	ZeroMemory(&pfd, sizeof(pfd));
 	pfd.nSize = sizeof(pfd);
@@ -148,7 +149,7 @@ void TGLStars::InitGL(HWND hWnd)
 
 void TGLStars::KillGL()
 {
-	MethodTrace trace(90, "TGLStars::KillGL()");
+	TraceMethod trace(90, "TGLStars::KillGL()");
 	gluDeleteQuadric(quadric);
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(fRC);

@@ -4,13 +4,16 @@
 #include <stdio.h>
 #include <time.h>
 
-
 int LoggingThreshold = 0;
+
+#ifndef DISABLE_LOGGING
 int TraceCount;
 
 char BUFFER[4096];
 
 FILE *logfile = NULL;
+char logname[1024];
+#endif // DISABLE_LOGGING
 
 void datetime()
 {
@@ -28,6 +31,10 @@ void StartLogFile(char *filename, bool append)
 #ifndef DISABLE_LOGGING
 	if (LoggingThreshold < 0)
 		return;
+	if (!strncmp(filename, logname, strlen(filename)))
+		return;
+	strncpy(logname, filename, 1023);
+	logname[1023] = 0;
 	if (logfile)
 		fclose(logfile);
 	TraceCount = 0;
@@ -87,7 +94,7 @@ void SendLogMessage(char *fmt, ...)
 }
 
 
-MethodTrace::MethodTrace(int priority, char *fmt, ...)
+TraceMethod::TraceMethod(int priority, char *fmt, ...)
 {
 #ifndef DISABLE_LOGGING
 	fThreshold = priority;
@@ -110,7 +117,7 @@ MethodTrace::MethodTrace(int priority, char *fmt, ...)
 #endif
 }
 
-MethodTrace::MethodTrace(char *fmt, ...)
+TraceMethod::TraceMethod(char *fmt, ...)
 {
 #ifndef DISABLE_LOGGING
 	fThreshold = -1;
@@ -130,7 +137,7 @@ MethodTrace::MethodTrace(char *fmt, ...)
 #endif
 }
 
-MethodTrace::~MethodTrace()
+TraceMethod::~TraceMethod()
 {
 #ifndef DISABLE_LOGGING
 	if ((fThreshold >= LoggingThreshold) || (fThreshold == -1))
