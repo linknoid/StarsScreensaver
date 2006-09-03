@@ -12,8 +12,8 @@ protected:
 	void reg_get_val(HKEY key, char *str, float *val);
 	void reg_set_val(HKEY key, char *str, float val);
 public:
-	TStarsReg(HWND hWnd, HDC &hDC, HGLRC &hRC)
-		: TGLStars(hWnd, hDC, hRC)
+	TStarsReg(HWND hWnd)
+		: TGLStars(hWnd)
    	{
 	}
 

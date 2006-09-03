@@ -4,24 +4,23 @@
 #include "logging/logging.h"
 
 
-TGLStars::TGLStars(HWND hWnd, HDC &hDC, HGLRC &hRC)
+TGLStars::TGLStars(HWND hWnd)
 {
 	MethodTrace trace(100, "TGLStars::TGLStars()");
 	RECT rect;
 	GetClientRect(hWnd, &rect);
-	SetScreenSize(rect.right, rect.bottom);
+	SendLogMessage("Screen size %i x %i", (int)rect.right - rect.left, (int)rect.bottom - rect.top);
+	SetScreenSize(rect.right - rect.left, rect.bottom - rect.top);
 
 	fWnd = hWnd;
-	fDC = hDC;
-	fRC = hRC;
 
-	InitGL(hWnd, hDC, hRC);
+	InitGL(hWnd);
 }
 
 TGLStars::~TGLStars()
 {
 	MethodTrace trace(100, "TGLStars::~TGLStars()");
-	KillGL(fWnd, fDC, fRC);
+	KillGL();
 }
 
 void TGLStars::DrawCircle(int x, int y, float radius, int c)
@@ -108,6 +107,7 @@ void TGLStars::DrawCircle(int x, int y, float radius, int c)
 bool TGLStars::BeforeDraw()
 {
 	MethodTrace trace(50, "TGLStars::BeforeDraw()");
+//	wglMakeCurrent(fDC, fRC);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_LINES);
 	return true;
@@ -118,10 +118,11 @@ bool TGLStars::AfterDraw()
 	MethodTrace trace(50, "TGLStars::AfterDraw()");
 	glEnd();
 	glFinish();
+	SwapBuffers(fDC);
 }
 
 
-void TGLStars::InitGL(HWND hWnd, HDC &hDC, HGLRC &hRC)
+void TGLStars::InitGL(HWND hWnd)
 {
 	MethodTrace trace(90, "TGLStars::InitGL()");
 	PIXELFORMATDESCRIPTOR pfd;
@@ -132,26 +133,26 @@ void TGLStars::InitGL(HWND hWnd, HDC &hDC, HGLRC &hRC)
 	pfd.iPixelType = PFD_TYPE_RGBA;
 	pfd.cColorBits = 24;
 
-	hDC = GetDC(hWnd);
+	fDC = GetDC(hWnd);
 
-	int i = ChoosePixelFormat(hDC, &pfd);
-	SetPixelFormat(hDC, i, &pfd);
+	int i = ChoosePixelFormat(fDC, &pfd);
+	SetPixelFormat(fDC, i, &pfd);
 
-	hRC = wglCreateContext(hDC);
-	wglMakeCurrent(hDC, hRC);
+	fRC = wglCreateContext(fDC);
+	wglMakeCurrent(fDC, fRC);
 	
 	quadric = gluNewQuadric();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void TGLStars::KillGL(HWND hWnd, HDC &hDC, HGLRC &hRC)
+void TGLStars::KillGL()
 {
 	MethodTrace trace(90, "TGLStars::KillGL()");
 	gluDeleteQuadric(quadric);
 	wglMakeCurrent(NULL, NULL);
-	wglDeleteContext(hRC);
-	ReleaseDC(hWnd, hDC);
+	wglDeleteContext(fRC);
+	ReleaseDC(fWnd, fDC);
 }
 
 

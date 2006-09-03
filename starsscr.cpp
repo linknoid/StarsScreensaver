@@ -47,19 +47,15 @@ extern int ThresholdForLogging;
 // main loop for screensaver
 LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static HDC hDC;
-	static HGLRC hRC;
-	static RECT rect;
-
 	switch ( message ) 
 	{
 		case WM_CREATE:
 			LoggingThreshold = ThresholdForLogging;
-			StartLogFile("C:\\cygwin\\home\\brycew\\stars\\OO\\mylog.txt", false);
+			StartLogFile("C:\\cygwin\\home\\brycew\\stars\\stars\\mylog.txt", false);
 
 			srand(time(0));
 			// Change this type to change the behavior
-			Stars = new TStarsReg(hWnd, hDC, hRC);
+			Stars = new TStarsReg(hWnd);
 			SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
 			return 0;
 
@@ -71,7 +67,6 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
 		case WM_TIMER:
 			Stars->DrawStars();
-			SwapBuffers(hDC);
 			return 0;
 
 		case WM_KEYDOWN:

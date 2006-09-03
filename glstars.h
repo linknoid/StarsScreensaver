@@ -17,11 +17,11 @@ private:
 	HWND fWnd;	// Holds Our Window Handle
 
 protected:
-	void InitGL(HWND hWnd, HDC &hDC, HGLRC &hRC);
-	void KillGL(HWND hWnd, HDC &hDC, HGLRC &hRC);
+	void InitGL(HWND hWnd);
+	void KillGL();
 public:
 
-	TGLStars(HWND hWnd, HDC &hDC, HGLRC &hRC);
+	TGLStars(HWND hWnd);
 	virtual ~TGLStars();
 	virtual void DrawCircle(int x, int y, float radius, int c);
 	virtual bool BeforeDraw();

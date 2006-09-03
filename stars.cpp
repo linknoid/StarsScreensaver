@@ -173,17 +173,18 @@ bool TStars::DrawStars()
 	float calcrad;
 	int i;
 	for (i = 0; i < fStarCount; i++)
-	{
-		calcrad = fRadius / z[i];
-		if (z[i] > 1 && calcrad > .125)
+		if (z[i] > 1)
 		{
-			calcx = (int) (x[i] / z[i]) + fHalfWidth;
-			calcy = (int) (y[i] / z[i]) + fHalfHeight;
-			if (calcx <= 0 || calcy <= 0 || calcx >= fWidth - 1 || calcy >= fHeight - 1)
-				continue;
-			DrawCircle(calcx, calcy, calcrad, 0xFFFFFF);
+			calcrad = fRadius / z[i];
+			if (calcrad > .125)
+			{
+				calcx = (int) (x[i] / z[i]) + fHalfWidth;
+				calcy = (int) (y[i] / z[i]) + fHalfHeight;
+				if (calcx <= 0 || calcy <= 0 || calcx >= fWidth - 1 || calcy >= fHeight - 1)
+					continue;
+				DrawCircle(calcx, calcy, calcrad, 0xFFFFFF);
+			}
 		}
-	}
 	
 
 
