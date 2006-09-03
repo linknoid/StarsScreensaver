@@ -1,0 +1,14 @@
+#include <scrnsave.h>
+#include <winuser.h>
+
+ID_APP	ICON "stars.ico"
+
+
+DLG_SCRNSAVECONFIGURE DIALOG 6, 18, 160, 63
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+//FONT 8, "MS Shell Dlg"
+BEGIN
+    PUSHBUTTON    "OK", 1053, 117, 10, 40, 14
+END
+
+
