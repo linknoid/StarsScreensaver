@@ -113,22 +113,19 @@ MethodTrace::MethodTrace(int priority, char *fmt, ...)
 MethodTrace::MethodTrace(char *fmt, ...)
 {
 #ifndef DISABLE_LOGGING
-	fThreshold = 0;
+	fThreshold = -1;
 	methodname = NULL;
-	if (LoggingThreshold == 0)
+	TraceCount++;
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(BUFFER, fmt, args);
+	methodname = new char [strlen(BUFFER) + 1];
+	strcpy(methodname, BUFFER);
+	if (logfile)
 	{
-		TraceCount++;
-		va_list args;
-		va_start(args, fmt);
-		vsprintf(BUFFER, fmt, args);
-		methodname = new char [strlen(BUFFER) + 1];
-		strcpy(methodname, BUFFER);
-		if (logfile)
-		{
-			datetime();
-			fprintf(logfile, "  > %s\n", methodname);
-			fflush(logfile);
-		}
+		datetime();
+		fprintf(logfile, "  > %s\n", methodname);
+		fflush(logfile);
 	}
 #endif
 }
@@ -136,11 +133,14 @@ MethodTrace::MethodTrace(char *fmt, ...)
 MethodTrace::~MethodTrace()
 {
 #ifndef DISABLE_LOGGING
-	if ((fThreshold >= LoggingThreshold) && logfile)
+	if ((fThreshold >= LoggingThreshold) || (fThreshold == -1))
 	{
-		datetime();
-		fprintf(logfile, "  < %s\n", methodname);
-		fflush(logfile);
+		if (logfile)
+		{
+			datetime();
+			fprintf(logfile, "  < %s\n", methodname);
+			fflush(logfile);
+		}
 		TraceCount--;
 	}
 	if (methodname)
