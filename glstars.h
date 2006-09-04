@@ -24,6 +24,7 @@ public:
 	TGLStars(HWND hWnd);
 	virtual ~TGLStars();
 	virtual void DrawCircle(int x, int y, float radius, int c);
+	virtual void ShowActiveScreen();
 	virtual bool BeforeDraw();
 	virtual bool AfterDraw();
 

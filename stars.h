@@ -19,6 +19,7 @@ private:
 	void ClearKBState();
 protected:
 	static int ActiveScreen;
+	static int ActiveScreenShowTime;
 
 	int fBiggestStarCount;
 	int fWidth, fHeight, fHalfWidth, fHalfHeight;
@@ -45,6 +46,7 @@ public:
 	void MoveStars();
 
 	virtual void DrawCircle(int x, int y, float radius, int c) = 0;
+	virtual void ShowActiveScreen() = 0;
 	virtual bool BeforeDraw() = 0;
 	virtual bool AfterDraw() = 0;
 

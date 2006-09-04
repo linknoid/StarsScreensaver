@@ -6,7 +6,7 @@ PROFILE= -profile-arcs
 FLAGS= -O3 
 INCLUDES= -I/usr/include/mingw
 DEFINES= -DWIN32 -DHAVE_OPENGL \
-#		 -DDISABLE_LOGGING
+		 -DDISABLE_LOGGING
 CC= g++ ${FLAGS} ${INCLUDES} ${DEFINES}
 
 LOGHEADER= logging/logging.h 
@@ -39,7 +39,7 @@ screensave.o: screensave.cpp screensave.h ${GLOBALFILES}
 consts.o: consts.c consts.h 
 	${CC} -c consts.c -o consts.o
 
-resources.cof: stars.ico stars.rc stars.def ${GLOBALFILES}
+resources.cof: stars.ico stars.rc ${GLOBALFILES}
 	windres -i stars.rc -o resources.cof -O coff -F pe-i386
 
 logging/logging.o: logging/logging.cpp ${GLOBALFILES} 

@@ -9,6 +9,7 @@
 struct KBStateStruct KBState;
 
 int TStars::ActiveScreen = 0;
+int TStars::ActiveScreenShowTime = 0;
 
 
 void TStars::ClearKBState()
@@ -144,6 +145,15 @@ bool TStars::DrawStars()
 	if (!BeforeDraw())
 		return false;
 
+	if (ActiveScreenShowTime > 0)
+	{
+		if ((ActiveScreen == fCurInstance) ||
+				((fCurInstance == InstanceCount) && (ActiveScreen == 0)))
+			ActiveScreenShowTime--;
+		if ((ActiveScreen == fCurInstance) || (ActiveScreen == 0))
+			ShowActiveScreen();
+	}
+
 	MoveStars();
 
 // This is the main section where the current star is drawn
@@ -224,15 +234,12 @@ void TStars::UpdateSettings()
 		if (!last && KBState.tab)
 		{
 			SendLogMessage(80, "ActiveScreen was %i", ActiveScreen);
-//			if ((ActiveScreen == CurInstance) || (ActiveScreen == 0))
-				do
-				{
-					SendLogMessage(80, "Before increment %i", ActiveScreen);
-					ActiveScreen++;
-					SendLogMessage(80, "After increment, ActiveScreen is now %i", ActiveScreen);
-					ActiveScreen %= (InstanceCount < 32) ? InstanceCount + 1 : 32;
-					SendLogMessage(80, "After mod by %i ActiveScreen is now %i", InstanceCount, ActiveScreen);
-				} while ((ActiveScreen != 0) && (StarsList[ActiveScreen] == NULL));
+			do
+			{
+				ActiveScreen++;
+				ActiveScreen %= (InstanceCount < 32) ? InstanceCount + 1 : 32;
+			} while ((ActiveScreen != 0) && (StarsList[ActiveScreen] == NULL));
+			ActiveScreenShowTime = 100;
 			SendLogMessage(80, "Tab, changing screen to %i", ActiveScreen);
 		}
 		last = KBState.tab;

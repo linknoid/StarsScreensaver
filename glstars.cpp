@@ -25,6 +25,20 @@ TGLStars::~TGLStars()
 	SetWindowLong(fWnd, 0, 0);
 }
 
+void TGLStars::ShowActiveScreen()
+{
+	float distance = 1.0 - (ActiveScreenShowTime / 100.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex2d(-distance, -distance);
+	glVertex2d(distance, -distance);
+	glVertex2d(distance, -distance);
+	glVertex2d(distance, distance);
+	glVertex2d(distance, distance);
+	glVertex2d(-distance, distance);
+	glVertex2d(-distance, distance);
+	glVertex2d(-distance, -distance);
+};
+
 void TGLStars::DrawCircle(int x, int y, float radius, int c)
 {
 //	TraceMethod trace(10, "TGLStars::DrawCircle()");
