@@ -1,6 +1,10 @@
 By Bryce Wagner  
 brycew at wawonastaff.org
 
+Multimonitor support thanks to the Matrix screensaver (see file screensave.cpp
+for details) written by J Brown, found here:
+http://catch22.net/software/matrix.asp
+
 I make no warranties about this code or what it could potentially do to your
 computer, but it should be safe.  You can use this code in any manner you
 see fit as long as I don't end up in a lawsuit because of it.
@@ -30,6 +34,8 @@ Left and right arrows: Change the direction of the stars.
 PageUp and PageDown: Change the number of stars.
 Keypad + and -: Change the size of stars.
 Delete: Resets all the above parameters to default values.
+A key: Turns anti-aliasing on and off.  Turning it on uses more processing power to make it look better, so if it is running jerky try turning off antialiasing.
+Tab: Switches between multiple monitors
 
 
 

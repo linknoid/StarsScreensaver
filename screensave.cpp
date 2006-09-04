@@ -12,6 +12,8 @@
 //	Copyright (C) 2006 J Brown
 //	www.catch22.net
 //
+//	Adapted slightly for use in Stars screensaver by Bryce Wagner
+//
 //	Freeware
 //
 //
