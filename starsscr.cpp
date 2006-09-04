@@ -5,7 +5,7 @@
 #include <time.h>
 #include "consts.h"
 #include "screensave.h"
-#include "starsreg.h"
+#include "glstars.h"
 #include "logging/logging.h"
 
 
@@ -43,26 +43,21 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	{
 		case WM_NCCREATE:
 			{
-				TStarsReg *Stars;
 				SendLogMessage(80, "WM_NCCREATE event, hWnd = %i", hWnd);
-				Stars = new TStarsReg(hWnd);
-				SendLogMessage(75, "Stars handle for window = %i, window handle = %i", Stars, hWnd);
-				SetWindowLong(hWnd, 0, (LONG)Stars);
+				SendLogMessage(75, "Stars handle for window = %i, window handle = %i", GetWindowLong(hWnd, 0), hWnd);
 				SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
 				return TRUE;
 			}
 
 		case WM_NCDESTROY:
-			SendLogMessage(80, "WM_DESTROY event, hWnd = %i", hWnd);
-			KillTimer(hWnd, 1);
-			delete (TStars *)GetWindowLong(hWnd, 0);
+			SendLogMessage(80, "WM_NCDESTROY event, hWnd = %i", hWnd);
 			PostQuitMessage(0);
 			return 0;
 
 		case WM_TIMER:
 			SendLogMessage(49, "WM_TIMER event, hWnd = %i", hWnd);
 			SendLogMessage(49, "Stars handle for window = %i", GetWindowLong(hWnd, 0));
-			((TStars *)GetWindowLong(hWnd, 0))->DrawStars();
+			((TGLStars *)GetWindowLong(hWnd, 0))->DrawStars();
 			return 0;
 
 		case WM_KEYDOWN:
@@ -98,6 +93,8 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
 		case WM_CLOSE:
 			SendLogMessage(100, "CLOSE event, hWnd = %i", hWnd);
+			KillTimer(hWnd, 1);
+			TGLStars::DestroyAll();
 			DestroyWindow(hWnd);
 			return 0;
 
@@ -197,41 +194,10 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 }
 
 
-void ErrorExit() 
-{ 
-	SendLogMessage("ErrorExit()");
-    LPVOID lpMsgBuf;
-    LPVOID lpDisplayBuf;
-
-    DWORD dw = GetLastError(); 
-
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        dw,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
-        0, NULL );
-	SendLogMessage((char *)lpMsgBuf);
-
-    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
-        (lstrlen((LPCTSTR)lpMsgBuf)+40)*sizeof(TCHAR)); 
-    wsprintf((LPTSTR)lpDisplayBuf, 
-        TEXT("%s failed with error %d: %s"), 
-        dw, lpMsgBuf); 
-    MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
-
-    LocalFree(lpMsgBuf);
-    LocalFree(lpDisplayBuf);
-    ExitProcess(dw); 
-}
-
-
 HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 {
 	TraceMethod trace(99, "CreateScreenSaveWnd");
-	TStarsReg *Stars;
+	TGLStars *Stars;
 	HWND result;
 	DWORD dwStyle = hwndParent ? WS_CHILD : WS_POPUP;
 
@@ -261,8 +227,7 @@ HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 	if (result)
 	{
 		SendLogMessage("Setting window position to %i, %i", rect->left, rect->top);
-		Stars = new TStarsReg(result);
-		SetWindowLong(result, 0, (LONG)Stars);
+		Stars = new TGLStars(result);
 		SetWindowPos(result, 0, rect->left, rect->top, 0, 0,
 				SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOSIZE|SWP_SHOWWINDOW);
 	} else
@@ -280,7 +245,7 @@ void InitScreenSaveClass(BOOL fPreview, HINSTANCE Instance)
 	wcx.style			= CS_OWNDC;
 	wcx.lpfnWndProc		= ScreenSaverProc;
 	wcx.cbClsExtra		= 0;
-	wcx.cbWndExtra		= sizeof(TStarsReg *);
+	wcx.cbWndExtra		= sizeof(TGLStars *);
 	wcx.hInstance		= Instance;
 	wcx.hIcon			= 0;
 	wcx.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
@@ -293,14 +258,8 @@ void InitScreenSaveClass(BOOL fPreview, HINSTANCE Instance)
 	else
 		wcx.hCursor			= LoadCursor(wcx.hInstance, MAKEINTRESOURCE(IDC_BLANKCURSOR));
 
-
 	RegisterClassEx(&wcx);
 
-
-
-//	SendLogMessage("WM_CREATE event, hWnd = %i", hWnd);
-
 	srand(time(0));
-
 }
 

@@ -2,6 +2,7 @@
 #define _STARS_H_
 
 #include "consts.h"
+#include "starsreg.h"
 
 extern struct KBStateStruct
 {
@@ -10,24 +11,19 @@ extern struct KBStateStruct
 } KBState;
 
 
-class TStars
+class TStars : public TStarsReg
 {
 private:
 	int fDelayIterations;
 	bool LastA, LastPlus, LastMinus, LastDel;
 	void ClearKBState();
 protected:
-	static int InstanceCount;
-	static TStars *StarsList[32]; // maximum of 32 displays
 	static int ActiveScreen;
-	int CurInstance;
 
-	int fStarCount, fBiggestStarCount;
+	int fBiggestStarCount;
 	int fWidth, fHeight, fHalfWidth, fHalfHeight;
-	bool fAntialias;
-
+	
 	float *x, *y, *z;
-	float fRadius, fSpeed, fAngle;
 
 	int zfar;
 	int calcx, calcy, calccolor;
@@ -48,8 +44,6 @@ public:
 	bool DrawStars();
 	void MoveStars();
 
-	virtual bool LoadSettings();
-	virtual void SaveSettings();
 	virtual void DrawCircle(int x, int y, float radius, int c) = 0;
 	virtual bool BeforeDraw() = 0;
 	virtual bool AfterDraw() = 0;

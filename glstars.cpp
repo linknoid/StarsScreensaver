@@ -15,12 +15,14 @@ TGLStars::TGLStars(HWND hWnd)
 	fWnd = hWnd;
 
 	InitGL(hWnd);
+	SetWindowLong(fWnd, 0, (LONG)this);
 }
 
 TGLStars::~TGLStars()
 {
 	TraceMethod trace(100, "TGLStars::~TGLStars()");
 	KillGL();
+	SetWindowLong(fWnd, 0, 0);
 }
 
 void TGLStars::DrawCircle(int x, int y, float radius, int c)
@@ -107,7 +109,7 @@ void TGLStars::DrawCircle(int x, int y, float radius, int c)
 bool TGLStars::BeforeDraw()
 {
 	TraceMethod trace(40, "TGLStars::BeforeDraw()");
-//	wglMakeCurrent(fDC, fRC);
+	wglMakeCurrent(fDC, fRC);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_LINES);
 	return true;

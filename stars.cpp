@@ -8,8 +8,6 @@
 
 struct KBStateStruct KBState;
 
-int TStars::InstanceCount = 0;
-TStars *TStars::StarsList[32]; // maximum of 32 displays
 int TStars::ActiveScreen = 0;
 
 
@@ -28,39 +26,23 @@ void TStars::ClearKBState()
 		KBState.a = false;
 }
 
-TStars::TStars()
+TStars::TStars() : TStarsReg()
 {
 	TraceMethod trace(100, "TStars::TStars");
-	CurInstance = ++InstanceCount;
-	if (CurInstance < 32)
-		StarsList[CurInstance] = this;
-	if (CurInstance == 1)
+	if (fCurInstance == 1)
 		ClearKBState();
-	SendLogMessage(90, "Instance #%i", CurInstance);
 
 	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
-
 	x = y = z = NULL;
 	fDelayIterations = 0;
-
-
-	fRadius = 8000;
-	fSpeed = 5 * DELAY;
-	fAngle = 0;
-	fStarCount = 10000;
 	fBiggestStarCount = 0;
-	if (!LoadSettings())
-		return;
 	InitStars();
 }
 
 TStars::~TStars()
 {
 	TraceMethod trace(100, "TStars::~TStars");
-	SaveSettings();
 	CleanupStars();
-	if (CurInstance < 32)
-		StarsList[CurInstance] = NULL;
 }
 
 void TStars::SetScreenSize(int width, int height)
@@ -70,17 +52,6 @@ void TStars::SetScreenSize(int width, int height)
 	fHeight = height;
 	fHalfWidth = width / 2;
 	fHalfHeight = height / 2;
-}
-
-bool TStars::LoadSettings()
-{
-	TraceMethod trace(90, "TStars::LoadSettings");
-	return true;
-}
-
-void TStars::SaveSettings()
-{
-	TraceMethod trace(90, "TStars::SaveSettings");
 }
 
 void TStars::CleanupStars()
@@ -266,7 +237,7 @@ void TStars::UpdateSettings()
 		}
 		last = KBState.tab;
 	}
-	if ((ActiveScreen != CurInstance) && (ActiveScreen != 0))
+	if ((ActiveScreen != fCurInstance) && (ActiveScreen != 0))
 		return;
 	if (KBState.rightarrow)
 	{

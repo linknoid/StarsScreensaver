@@ -6,7 +6,7 @@ PROFILE= -profile-arcs
 FLAGS= -O3 
 INCLUDES= -I/usr/include/mingw
 DEFINES= -DWIN32 -DHAVE_OPENGL \
-		 -DDISABLE_LOGGING
+#		 -DDISABLE_LOGGING
 CC= g++ ${FLAGS} ${INCLUDES} ${DEFINES}
 
 LOGHEADER= logging/logging.h 
