@@ -68,9 +68,9 @@ void SendLogMessage(int priority, char *fmt, ...)
 #ifndef DISABLE_LOGGING
 	if ((priority >= LoggingThreshold) && logfile)
 	{
-		datetime();
 		va_list args;
 		va_start(args, fmt);
+		datetime();
 		vsprintf(BUFFER, fmt, args);
 		fprintf(logfile, "  %s\n", BUFFER);
 		fflush(logfile);
@@ -83,9 +83,9 @@ void SendLogMessage(char *fmt, ...)
 #ifndef DISABLE_LOGGING
 	if (logfile)
 	{
-		datetime();
 		va_list args;
 		va_start(args, fmt);
+		datetime();
 		vsprintf(BUFFER, fmt, args);
 		fprintf(logfile, "  %s\n", BUFFER);
 		fflush(logfile);
@@ -96,14 +96,13 @@ void SendLogMessage(char *fmt, ...)
 
 TraceMethod::TraceMethod(int priority, char *fmt, ...)
 {
+	va_list args;
+	va_start(args, fmt);
 #ifndef DISABLE_LOGGING
 	fThreshold = priority;
 	methodname = NULL;
 	if (priority >= LoggingThreshold)
 	{
-		TraceCount++;
-		va_list args;
-		va_start(args, fmt);
 		vsprintf(BUFFER, fmt, args);
 		methodname = new char [strlen(BUFFER) + 1];
 		strcpy(methodname, BUFFER);
@@ -113,6 +112,7 @@ TraceMethod::TraceMethod(int priority, char *fmt, ...)
 			fprintf(logfile, "  > %s\n", methodname);
 			fflush(logfile);
 		}
+		TraceCount++;
 	}
 #endif
 }
@@ -120,11 +120,10 @@ TraceMethod::TraceMethod(int priority, char *fmt, ...)
 TraceMethod::TraceMethod(char *fmt, ...)
 {
 #ifndef DISABLE_LOGGING
-	fThreshold = -1;
-	methodname = NULL;
-	TraceCount++;
 	va_list args;
 	va_start(args, fmt);
+	fThreshold = -1;
+	methodname = NULL;
 	vsprintf(BUFFER, fmt, args);
 	methodname = new char [strlen(BUFFER) + 1];
 	strcpy(methodname, BUFFER);
@@ -134,12 +133,15 @@ TraceMethod::TraceMethod(char *fmt, ...)
 		fprintf(logfile, "  > %s\n", methodname);
 		fflush(logfile);
 	}
+	TraceCount++;
 #endif
 }
 
 TraceMethod::~TraceMethod()
 {
 #ifndef DISABLE_LOGGING
+	if (methodname)
+		TraceCount--;
 	if ((fThreshold >= LoggingThreshold) || (fThreshold == -1))
 	{
 		if (logfile)
@@ -148,7 +150,6 @@ TraceMethod::~TraceMethod()
 			fprintf(logfile, "  < %s\n", methodname);
 			fflush(logfile);
 		}
-		TraceCount--;
 	}
 	if (methodname)
 		delete [] methodname;

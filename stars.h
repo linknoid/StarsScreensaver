@@ -1,25 +1,26 @@
 #ifndef _STARS_H_
 #define _STARS_H_
 
-extern const int ZMAX;
-extern const int XMAX;
-extern const int XZCONVERSION;
-extern const int DELAY;
-extern const int PriorityForLogging;
-
+#include "consts.h"
 
 extern struct KBStateStruct
 {
 	bool rightarrow, leftarrow, uparrow, downarrow;
-	bool pageup, pagedown, a, plus, minus;
+	bool pageup, pagedown, a, plus, minus, tab, del;
 } KBState;
 
 
 class TStars
 {
 private:
+	int fDelayIterations;
+	bool LastA, LastPlus, LastMinus, LastDel;
 	void ClearKBState();
 protected:
+	static int InstanceCount;
+	static TStars *StarsList[32]; // maximum of 32 displays
+	static int ActiveScreen;
+	int CurInstance;
 
 	int fStarCount, fBiggestStarCount;
 	int fWidth, fHeight, fHalfWidth, fHalfHeight;
@@ -31,6 +32,7 @@ protected:
 	int zfar;
 	int calcx, calcy, calccolor;
 	float xspeed, zspeed;
+
 
 	void InitStars();
 	void CleanupStars();

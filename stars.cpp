@@ -8,6 +8,11 @@
 
 struct KBStateStruct KBState;
 
+int TStars::InstanceCount = 0;
+TStars *TStars::StarsList[32]; // maximum of 32 displays
+int TStars::ActiveScreen = 0;
+
+
 void TStars::ClearKBState()
 {
 	TraceMethod trace(90, "TStars::ClearKBState");
@@ -19,17 +24,24 @@ void TStars::ClearKBState()
 		KBState.pagedown = 
 		KBState.plus =
 		KBState.minus =
+		KBState.tab =
 		KBState.a = false;
 }
 
 TStars::TStars()
 {
 	TraceMethod trace(100, "TStars::TStars");
-	ClearKBState();
+	CurInstance = ++InstanceCount;
+	if (CurInstance < 32)
+		StarsList[CurInstance] = this;
+	if (CurInstance == 1)
+		ClearKBState();
+	SendLogMessage(90, "Instance #%i", CurInstance);
 
 	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
 
 	x = y = z = NULL;
+	fDelayIterations = 0;
 
 
 	fRadius = 8000;
@@ -47,6 +59,8 @@ TStars::~TStars()
 	TraceMethod trace(100, "TStars::~TStars");
 	SaveSettings();
 	CleanupStars();
+	if (CurInstance < 32)
+		StarsList[CurInstance] = NULL;
 }
 
 void TStars::SetScreenSize(int width, int height)
@@ -194,10 +208,9 @@ bool TStars::DrawStars()
 	if (!AfterDraw())
 		return false;
 
-	static int delayiterations = 0;
-	++delayiterations;
-	delayiterations %= 10;
-	if (delayiterations == 0)
+	++fDelayIterations;
+	fDelayIterations %= 10;
+	if (fDelayIterations == 0)
 		UpdateSettings();
 }
 
@@ -235,6 +248,26 @@ void TStars::MoveStars()
 void TStars::UpdateSettings()
 {
 	TraceMethod trace(49, "TStars::UpdateSettings");
+	{
+		static bool last = false;
+		if (!last && KBState.tab)
+		{
+			SendLogMessage(80, "ActiveScreen was %i", ActiveScreen);
+//			if ((ActiveScreen == CurInstance) || (ActiveScreen == 0))
+				do
+				{
+					SendLogMessage(80, "Before increment %i", ActiveScreen);
+					ActiveScreen++;
+					SendLogMessage(80, "After increment, ActiveScreen is now %i", ActiveScreen);
+					ActiveScreen %= (InstanceCount < 32) ? InstanceCount + 1 : 32;
+					SendLogMessage(80, "After mod by %i ActiveScreen is now %i", InstanceCount, ActiveScreen);
+				} while ((ActiveScreen != 0) && (StarsList[ActiveScreen] == NULL));
+			SendLogMessage(80, "Tab, changing screen to %i", ActiveScreen);
+		}
+		last = KBState.tab;
+	}
+	if ((ActiveScreen != CurInstance) && (ActiveScreen != 0))
+		return;
 	if (KBState.rightarrow)
 	{
 		SendLogMessage(50, "Right arrow, rotate clockwise");
@@ -273,34 +306,30 @@ void TStars::UpdateSettings()
 		SendLogMessage(50, "Page down, less stars");
 		ChangeStarCount((int)(fStarCount / 1.1));
 	}
+	if (!LastPlus && KBState.plus)
 	{
-		static bool last = false;
-		if (!last && KBState.plus)
-		{
-			SendLogMessage(50, "Keypad plus, radius bigger");
-			fRadius *= 1.03;
-		}
-		last = KBState.plus;
+		SendLogMessage(50, "Keypad plus, radius bigger");
+		fRadius *= 1.03;
 	}
+	LastPlus = KBState.plus;
+	if (!LastMinus && KBState.minus)
 	{
-		static bool last = false;
-		if (!last && KBState.minus)
-		{
-			SendLogMessage(50, "Keypad minus, radius smaller");
-			fRadius /= 1.03;
-		}
-		last = KBState.minus;
+		SendLogMessage(50, "Keypad minus, radius smaller");
+		fRadius /= 1.03;
 	}
+	LastMinus = KBState.minus;
+	if (!LastA && KBState.a)
 	{
-		static bool last = false;
-		if (!last && KBState.a)
-		{
-			if (fAntialias) fAntialias = false; else fAntialias = true;
-//			fAntialias = !fAntialias; // why doesn't this work?
-			SendLogMessage(50, "Antialiasing %sabled", fAntialias ? "en" : "dis");
-		}
-		last = KBState.a;
+		if (fAntialias) fAntialias = false; else fAntialias = true;
+		SendLogMessage(50, "Antialiasing %sabled", fAntialias ? "en" : "dis");
 	}
+	LastA = KBState.a;
+	if (!LastDel && KBState.del)
+	{
+		ResetDefaults();
+		SendLogMessage(50, "Keypad delete, resetting to defaults");
+	}
+	LastDel = KBState.del;
 };
 
 
