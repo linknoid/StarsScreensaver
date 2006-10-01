@@ -3,7 +3,7 @@ LIBS= -lscrnsave -lmingw32 -lgdi32 -mno-cygwin -mwindows -Uunix
 GLLIBS = -lopengl32 -lglu32 ${LIBS}
 OPTIMIZE= -fbranch-probabilities 
 PROFILE= -profile-arcs
-FLAGS= -O3 
+FLAGS= -O3 -march=i686 -funsafe-math-optimizations
 INCLUDES= -I/usr/include/mingw
 DEFINES= -DWIN32 -DHAVE_OPENGL \
 		 -DDISABLE_LOGGING

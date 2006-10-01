@@ -146,7 +146,7 @@ BOOL ParseCommandLine(PSTR szCmdLine, int *chOption, HWND *hwndParent)
 int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int iCmdShow)
 {
 	LoggingThreshold = THRESHOLDFORLOGGING;
-	StartLogFile(LOGFILENAME, false);
+	StartLogFile(LOGFILENAME, true);
 	TraceMethod trace("WinMain");
 
 	HWND	hwndParent;

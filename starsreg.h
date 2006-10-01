@@ -20,6 +20,9 @@ protected:
 	void SetRegistryValue(HKEY key, const char *str, int val);
 	void GetRegistryValue(HKEY key, const char *str, float *val);
 	void SetRegistryValue(HKEY key, const char *str, float val);
+	
+	virtual void SetSpeed(float NewSpeed);
+	virtual void SetDelay(int NewDelay);
 public:
 	TStarsReg();
 	virtual ~TStarsReg();
@@ -27,6 +30,9 @@ public:
 
 	bool LoadSettings();
 	void SaveSettings();
+
+	virtual bool DrawStars() = 0;
+	static void SetAllDelay(int NewDelay);
 };
 
 #endif // _STARSREG_H_

@@ -34,7 +34,9 @@ Left and right arrows: Change the direction of the stars.
 PageUp and PageDown: Change the number of stars.
 Keypad + and -: Change the size of stars.
 Delete: Resets all the above parameters to default values.
-A key: Turns anti-aliasing on and off.  Turning it on uses more processing power to make it look better, so if it is running jerky try turning off antialiasing.
+A key: Turns anti-aliasing on and off.  This feature was removed because there was no significant speed difference 
+Home: Increases frame rate
+End: Decreases frame rate
 Tab: Switches between multiple monitors
 
 

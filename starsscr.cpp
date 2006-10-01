@@ -23,7 +23,7 @@ Up and down arrows change speed.\n\
 PageUp and PageDown changes number of stars.\n\
 Keypad + and - change star size.\n\
 Delete resets everything to default.\n\
-'A' key toggles antialiasing.\n\
+Home (increase) and End (decrease) change the frame rate\n\
 Tab switches keyboard control between multiple monitors"
 
 
@@ -57,7 +57,15 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		case WM_TIMER:
 			SendLogMessage(49, "WM_TIMER event, hWnd = %i", hWnd);
 			SendLogMessage(49, "Stars handle for window = %i", GetWindowLong(hWnd, 0));
-			((TGLStars *)GetWindowLong(hWnd, 0))->DrawStars();
+			static int LastDelay = DELAY;
+			if (LastDelay != DELAY)
+			{
+				SendLogMessage(90, "Delay changed = %i, resetting timer", DELAY);
+				KillTimer(hWnd, 1);
+				SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
+				LastDelay = DELAY;
+			}
+			TGLStars::DrawAllStars();
 			return 0;
 
 		case WM_KEYDOWN:
@@ -107,89 +115,60 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
 bool handleKey(WPARAM wParam, LPARAM lParam)
 {
+	int newState;
 	if (lParam & (1 << 31))
-	{ // key released
+	{
 		SendLogMessage("Key released %i", wParam);
-		switch (wParam)
-		{
-			case 9: // Tab
-				KBState.tab = 0;
-				break;
-			case 33: // Page Up
-				KBState.pageup = 0;
-				break;
-			case 34: // Page Down
-				KBState.pagedown = 0;
-				break;
-			case 37: // Left Arrow
-				KBState.leftarrow = 0;
-				break;
-			case 38: // Up Arrow
-				KBState.uparrow = 0;
-				break;
-			case 39: // Right Arrow
-				KBState.rightarrow = 0;
-				break;
-			case 40: // Down Arrow
-				KBState.downarrow = 0;
-				break;
-			case 46: // Delete key
-				KBState.del = 0;
-				break;
-			case 65: // 'a' key
-				KBState.a = 0;
-				break;
-			case 107: // Keypad +
-				KBState.plus = 0;
-				break;
-			case 109: // Keypad -
-				KBState.minus = 0;
-				break;
-			default:
-				return false;
-		} 
+		newState = 0;
 	} else
-	{ // key pressed
+	{
 		SendLogMessage("Key pressed %i", wParam);
-		switch (wParam)
-		{
-			case 9: // Tab
-				KBState.tab = 1;
-				break;
-			case 33: // Page Up
-				KBState.pageup = 1;
-				break;
-			case 34: // Page Down
-				KBState.pagedown = 1;
-				break;
-			case 37: // Left Arrow
-				KBState.leftarrow = 1;
-				break;
-			case 38: // Up Arrow
-				KBState.uparrow = 1;
-				break;
-			case 39: // Right Arrow
-				KBState.rightarrow = 1;
-				break;
-			case 40: // Down Arrow
-				KBState.downarrow = 1;
-				break;
-			case 65: // 'a' key
-				KBState.a = 1;
-				break;
-			case 107: // Keypad +
-				KBState.plus = 1;
-				break;
-			case 109: // Keypad -
-				KBState.minus = 1;
-				break;
-			case 46: // Delete key
-				KBState.del = 1;
-				break;
-			default:
-				return false;
-		} 
+		newState = 1;
 	}
+	switch (wParam)
+	{
+		case 9: // Tab
+			KBState.tab = newState;
+			break;
+		case 33: // Page Up
+			KBState.pageup = newState;
+			break;
+		case 34: // Page Down
+			KBState.pagedown = newState;
+			break;
+		case 35: // Home
+			KBState.home = newState;
+			break;
+		case 36: // End
+			KBState.end = newState;
+			break;
+		case 37: // Left Arrow
+			KBState.leftarrow = newState;
+			break;
+		case 38: // Up Arrow
+			KBState.uparrow = newState;
+			break;
+		case 39: // Right Arrow
+			KBState.rightarrow = newState;
+			break;
+		case 40: // Down Arrow
+			KBState.downarrow = newState;
+			break;
+		case 46: // Delete key
+			KBState.del = newState;
+			break;
+		case 65: // 'a' key
+			KBState.a = newState;
+			break;
+		case 107: // Keypad +
+			KBState.plus = newState;
+			break;
+		case 109: // Keypad -
+			KBState.minus = newState;
+			break;
+		default:
+			return false;
+	} 
 	return true;
 }
 
@@ -208,7 +187,7 @@ HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 
 	SendLogMessage("Creating window %i x %i", (int)(rect->right - rect->left), (int)(rect->bottom - rect->top));
 	{
-		TraceMethod("CreateWindowEx");
+		TraceMethod trace("CreateWindowEx");
 		result = CreateWindowEx(	dwStyleEx, 
 							APPNAME, 
 							NULL, 

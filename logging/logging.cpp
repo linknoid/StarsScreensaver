@@ -4,6 +4,15 @@
 #include <stdio.h>
 #include <time.h>
 
+#ifdef WIN32
+# include <windows.h>
+	LARGE_INTEGER PerformanceFrequency;
+	struct _SYSTEMTIME basetime;
+	LARGE_INTEGER basecount;
+#else
+# include <sys/time.h>
+#endif
+
 int LoggingThreshold = 0;
 
 #ifndef DISABLE_LOGGING
@@ -18,9 +27,34 @@ char logname[1024];
 void datetime()
 {
 #ifndef DISABLE_LOGGING
+#ifdef WIN32
+	static long long msec = 0;
+	static struct _SYSTEMTIME calctime;
+//	static struct _SYSTEMTIME wintime;
+//	GetLocalTime(&wintime);
+//	msec = wintime.wMilliseconds;
+	static LARGE_INTEGER PerformanceCount;
+	QueryPerformanceCounter(&PerformanceCount);
+	msec = (long long)(PerformanceCount.QuadPart * 1000.0 / PerformanceFrequency.QuadPart);
+	calctime = basetime;
+	calctime.wMilliseconds += msec;
+	calctime.wSecond += calctime.wMilliseconds / 1000;
+	calctime.wMinute += calctime.wSecond / 60;
+	calctime.wHour += calctime.wMinute / 60;
+	calctime.wMilliseconds %= 1000;
+	calctime.wSecond %= 60;
+	calctime.wMinute %= 60;
+	calctime.wHour %= 24;
+	fprintf(logfile, "%02i:%02i:%02i.%03i", calctime.wHour, calctime.wMinute, calctime.wSecond, calctime.wMilliseconds);
+#else
+	static int msec = 0;
 	static char mytime[50];
+	static struct timeval smalltime;
+	gettimeofday(&smalltime, NULL);
+	msec = smalltime.tv_usec / 1000;
 	_strtime(mytime);
-	fprintf(logfile, mytime);
+	fprintf(logfile, "%s.%03i", mytime, msec);
+#endif
 	for (int i = 0; i < TraceCount; i++)
 		fprintf(logfile, "  ");
 #endif
@@ -29,6 +63,17 @@ void datetime()
 void StartLogFile(char *filename, bool append)
 {
 #ifndef DISABLE_LOGGING
+#ifdef WIN32
+	LARGE_INTEGER PerformanceCount;
+	GetLocalTime(&basetime);
+	int msec = basetime.wMilliseconds;
+	while (basetime.wMilliseconds == msec)
+		GetLocalTime(&basetime);
+	msec = basetime.wMilliseconds;
+	QueryPerformanceCounter(&basecount);
+	QueryPerformanceFrequency(&PerformanceFrequency);
+//	Add_msec = 1000 + msec - ((long long)(PerformanceCount.QuadPart * 1000.0 / PerformanceFrequency.QuadPart) % 1000);
+#endif
 	if (LoggingThreshold < 0)
 		return;
 	if (!strncmp(filename, logname, strlen(filename)))

@@ -7,7 +7,7 @@
 extern struct KBStateStruct
 {
 	bool rightarrow, leftarrow, uparrow, downarrow;
-	bool pageup, pagedown, a, plus, minus, tab, del;
+	bool pageup, pagedown, a, plus, minus, tab, del, home, end;
 } KBState;
 
 
@@ -23,29 +23,32 @@ protected:
 
 	int fBiggestStarCount;
 	int fWidth, fHeight, fHalfWidth, fHalfHeight;
+	float fFloatHeight, fFloatWidth;
 	
 	float *x, *y, *z;
 
 	int zfar;
-	int calcx, calcy, calccolor;
 	float xspeed, zspeed;
 
 
 	void InitStars();
 	void CleanupStars();
 
+	virtual void SetSpeed(float NewSpeed);
+	
 public:
 	TStars();
 	virtual ~TStars();
-	void ResetDefaults();
-	void ChangeStarCount(int newcount);
-	void UpdateSettings();
-	void SetScreenSize(int width, int height);
+	virtual void ResetDefaults();
+	virtual void ChangeStarCount(int newcount);
+	virtual void UpdateSettings();
+	virtual void SetScreenSize(int width, int height);
 
-	bool DrawStars();
-	void MoveStars();
+	static void DrawAllStars();
+	virtual bool DrawStars();
+	virtual void MoveStars();
 
-	virtual void DrawCircle(int x, int y, float radius, int c) = 0;
+	virtual void DrawCircle(float x, float y, float radius) = 0;
 	virtual void ShowActiveScreen() = 0;
 	virtual bool BeforeDraw() = 0;
 	virtual bool AfterDraw() = 0;

@@ -24,6 +24,9 @@ void TStars::ClearKBState()
 		KBState.plus =
 		KBState.minus =
 		KBState.tab =
+		KBState.del =
+		KBState.home =
+		KBState.end =
 		KBState.a = false;
 }
 
@@ -51,6 +54,8 @@ void TStars::SetScreenSize(int width, int height)
 	TraceMethod trace(90, "TStars::SetScreenSize");
 	fWidth = width;
 	fHeight = height;
+	fFloatWidth = width;
+	fFloatHeight = height;
 	fHalfWidth = width / 2;
 	fHalfHeight = height / 2;
 }
@@ -66,6 +71,18 @@ void TStars::CleanupStars()
 		free(z);
 }
 
+inline int GetRandomX()
+{
+//	TraceMethod trace(10, "TStars::GetRandomX");
+	return (rand() % 20000 - 10000) * 5000;
+}
+
+inline int GetRandomY()
+{
+//	TraceMethod trace(10, "TStars::GetRandomY");
+	return (rand() % 20000 - 10000) * 1000;
+}
+
 void TStars::InitStars()
 {
 	TraceMethod trace(90, "TStars::InitStars");
@@ -76,8 +93,9 @@ void TStars::InitStars()
 
 	// sin() and cos() are used here, but they're outside the loop. The only
 	// time they're used is when the movement angle is changed	
-	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-	zspeed = cos(fAngle) * fSpeed;
+	SetSpeed(fSpeed);
+//	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
+//	zspeed = cos(fAngle) * fSpeed;
 
 	// This is where the stars are initally created.  The ranges used for
 	// x, y, and z coordinates was determined by trial and error
@@ -87,8 +105,8 @@ void TStars::InitStars()
 	for (i = 0; i < fStarCount; i++)
 	{
 		z[i] = rand() % ZMAX - (ZMAX / 2);
-		x[i] = (rand() % 20000 - 10000) * 5000;
-		y[i] = (rand() % 20000 - 10000) * 1000;
+		x[i] = GetRandomX();
+		y[i] = GetRandomY();
 	}
 	fHalfWidth = fWidth / 2;
 	fHalfHeight = fHeight / 2;
@@ -119,8 +137,8 @@ void TStars::ChangeStarCount(int newcount)
 	for (int i = fStarCount; i < newcount; i++)
 	{
 		z[i] = rand() % ZMAX - (ZMAX / 2);
-		x[i] = (rand() % 20000 - 10000) * 5000;
-		y[i] = (rand() % 20000 - 10000) * 1000;
+		x[i] = GetRandomX();
+		y[i] = GetRandomY();
 	}
 	fStarCount = newcount;
 }
@@ -129,6 +147,7 @@ void TStars::ChangeStarCount(int newcount)
 void TStars::ResetDefaults()
 {
 	TraceMethod trace(90, "TStars::ResetDefaults");
+	DELAY = 10;
 	CleanupStars();
 	fRadius = 8000;
 	fSpeed = 5 * DELAY;
@@ -138,6 +157,13 @@ void TStars::ResetDefaults()
 	InitStars();
 }
 
+void TStars::DrawAllStars()
+{
+	TraceMethod trace(40, "TStars::DrawAllStars");
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->DrawStars();
+}
 
 bool TStars::DrawStars()
 {
@@ -169,32 +195,30 @@ bool TStars::DrawStars()
 // The rest is just bounds checking and optimizations.
 //
 	float calcrad;
+	float calcx, calcy;
 	int i;
+	int logcount = 0;
 	for (i = 0; i < fStarCount; i++)
 		if (z[i] > 1)
 		{
 			calcrad = fRadius / z[i];
 			if (calcrad > .125)
 			{
-				calcx = (int) (x[i] / z[i]) + fHalfWidth;
-				calcy = (int) (y[i] / z[i]) + fHalfHeight;
-				if (calcx <= 0 || calcy <= 0 || calcx >= fWidth - 1 || calcy >= fHeight - 1)
-					continue;
-				DrawCircle(calcx, calcy, calcrad, 0xFFFFFF);
+				calcx = (x[i] / z[i]) + fHalfWidth;
+				calcy = (y[i] / z[i]) + fHalfHeight;
+				if ((calcx > 0 && calcx < fFloatWidth) && (calcy > 0 && calcy < fFloatHeight))
+					DrawCircle(calcx, calcy, calcrad);
 			}
 		}
 	
-
-
 	if (!AfterDraw())
 		return false;
 
 	++fDelayIterations;
-	fDelayIterations %= 10;
+	fDelayIterations %= (int)(100 / DELAY);
 	if (fDelayIterations == 0)
 		UpdateSettings();
 }
-
 
 void TStars::MoveStars()
 {
@@ -204,23 +228,32 @@ void TStars::MoveStars()
 	{
 		x[i] -= xspeed;
 		z[i] -= zspeed;
+	}
+	if (fDelayIterations == 0)
+	{
 // If it reaches the defined edge of the X axis, wrap it around
-		if (x[i] < -XMAX / 2)
-			x[i] += XMAX;
-		else if (x[i] > XMAX / 2)
-			x[i] -= XMAX;
+		for (i = 0; i < fStarCount; i++)
+		{
+			if (x[i] < -XMAX / 2)
+				x[i] += XMAX;
+			else if (x[i] > XMAX / 2)
+				x[i] -= XMAX;
+		}
 // If it reaches the edge of visibility, wrap it around and reset X and Y axes
-		if (z[i] < 0)
+		for (i = 0; i < fStarCount; i++)
 		{
-			z[i] += ZMAX;
-			x[i] = (rand() % 20000 - 10000) * 5000;
-			y[i] = (rand() % 20000 - 10000) * 1000;
-		} 
-		else if (z[i] > ZMAX)
-		{
-			z[i] -= ZMAX;
-			x[i] = (rand() % 20000 - 10000) * 5000;
-			y[i] = (rand() % 20000 - 10000) * 1000;
+			if (z[i] < 0)
+			{
+				z[i] += ZMAX;
+				x[i] = GetRandomX();
+				y[i] = GetRandomY();
+			} 
+			else if (z[i] > ZMAX)
+			{
+				z[i] -= ZMAX;
+				x[i] = GetRandomX();
+				y[i] = GetRandomY();
+			}
 		}
 	}
 }
@@ -249,53 +282,49 @@ void TStars::UpdateSettings()
 	if (KBState.rightarrow)
 	{
 		SendLogMessage(50, "Right arrow, rotate clockwise");
-		fAngle += .01 * DELAY;
-		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-		zspeed = cos(fAngle) * fSpeed;
+		fAngle += .1;
+		SetSpeed(fSpeed);
 	}
 	if (KBState.leftarrow)
 	{
 		SendLogMessage(50, "Left arrow, rotate counterclockwise");
-		fAngle -= .01 * DELAY;
-		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-		zspeed = cos(fAngle) * fSpeed;
+		fAngle -= .1;
+		SetSpeed(fSpeed);
 	}
 	if (KBState.uparrow)
 	{
 		SendLogMessage(50, "Up arrow, speed up");
-        fSpeed *= 1.05;
-		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-		zspeed = cos(fAngle) * fSpeed;
+		SetSpeed(fSpeed * 1.05);
 	}
 	if (KBState.downarrow)
 	{
 		SendLogMessage(50, "Down arrow, slow down");
-        fSpeed /= 1.05;
-		xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-		zspeed = cos(fAngle) * fSpeed;
+		SetSpeed(fSpeed / 1.05);
 	}
 	if (KBState.pageup)
 	{
-		SendLogMessage(50, "Page up, more stars");
-		ChangeStarCount((int)(fStarCount * 1.1));
+		int NewStarCount = (fStarCount >= 10) ? (int)(fStarCount * 1.05) : 10;
+		SendLogMessage(50, "Page up, more stars, %i", NewStarCount);
+		ChangeStarCount(NewStarCount);
 	}
 	if (KBState.pagedown)
 	{
-		SendLogMessage(50, "Page down, less stars");
-		ChangeStarCount((int)(fStarCount / 1.1));
+		int NewStarCount = (int)(fStarCount / 1.05);
+		SendLogMessage(50, "Page down, less stars, %i", NewStarCount);
+		ChangeStarCount(NewStarCount);
 	}
-	if (!LastPlus && KBState.plus)
+	if (KBState.plus)
 	{
 		SendLogMessage(50, "Keypad plus, radius bigger");
-		fRadius *= 1.03;
+		fRadius *= 1.01;
 	}
-	LastPlus = KBState.plus;
-	if (!LastMinus && KBState.minus)
+	if (KBState.minus)
 	{
 		SendLogMessage(50, "Keypad minus, radius smaller");
-		fRadius /= 1.03;
+		fRadius /= 1.01;
+		if (fRadius < 1)
+			fRadius = 1;
 	}
-	LastMinus = KBState.minus;
 	if (!LastA && KBState.a)
 	{
 		if (fAntialias) fAntialias = false; else fAntialias = true;
@@ -308,6 +337,26 @@ void TStars::UpdateSettings()
 		SendLogMessage(50, "Keypad delete, resetting to defaults");
 	}
 	LastDel = KBState.del;
+	if (KBState.home)
+	{
+		if (KBState.home == 1)
+		{
+			SetAllDelay(DELAY + 1);
+			SendLogMessage(50, "Keypad home, increasing delay");
+		}
+		KBState.home %= 5;
+		KBState.home++;
+	}
+	if (KBState.end)
+	{
+		if (KBState.end == 1)
+		{
+			SetAllDelay(DELAY - 1);
+			SendLogMessage(50, "Keypad end, decreasing delay");
+		}
+		KBState.end %= 5;
+		KBState.end++;
+	}
 };
 
 
@@ -315,6 +364,13 @@ void TStars::OnKeyDel()
 {
 	TraceMethod trace(90, "TStars::OnKeyDel");
 	ResetDefaults();
+}
+
+void TStars::SetSpeed(float NewSpeed)
+{
+	TStarsReg::SetSpeed(NewSpeed);
+	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
+	zspeed = cos(fAngle) * fSpeed;
 }
 
 

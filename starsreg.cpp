@@ -6,7 +6,7 @@
 #define MY_HKEY "Software\\Linknoid\\Stars"
 
 int TStarsReg::InstanceCount = 0;
-TStarsReg *TStarsReg::StarsList[32]; // maximum of 32 displays
+TStarsReg *TStarsReg::StarsList[32]; // maximum of 31 displays (0 reserved for all)
 
 TStarsReg::TStarsReg()
 {
@@ -58,6 +58,7 @@ bool TStarsReg::LoadSettings()
 		GetRegistryValue(key, "speed", &Speed);
 		GetRegistryValue(key, "angle", &Angle);
 		GetRegistryValue(key, "antialias", &Antialias);
+		GetRegistryValue(key, "delay", &DELAY);
 	}
 	fStarCount = StarCount;
 	fRadius = Radius;
@@ -84,6 +85,7 @@ void TStarsReg::SaveSettings()
 		SetRegistryValue(key, "speed", fSpeed);
 		SetRegistryValue(key, "angle", fAngle * 720);
 		SetRegistryValue(key, "antialias", fAntialias);
+		SetRegistryValue(key, "delay", DELAY);
 	}
 }
 
@@ -124,5 +126,27 @@ void TStarsReg::SetRegistryValue(HKEY key, const char *str, float val)
 	sprintf(fKeyName, "%s%i", str, fCurInstance);
     int tmp = (int)val;
     RegSetValueEx(key, fKeyName, 0, REG_DWORD, (BYTE*)&tmp, sizeof(tmp));
+}
+
+void TStarsReg::SetSpeed(float NewSpeed)
+{
+	fSpeed = NewSpeed;
+}
+
+void TStarsReg::SetDelay(int NewDelay)
+{
+	SetSpeed(fSpeed * NewDelay / DELAY);
+}
+
+void TStarsReg::SetAllDelay(int NewDelay)
+{
+	if (NewDelay < 5)
+		NewDelay = 5;
+	if (NewDelay > 50)
+		NewDelay = 50;
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->SetDelay(NewDelay);
+	DELAY = NewDelay;
 }
 

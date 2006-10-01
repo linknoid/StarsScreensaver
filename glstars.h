@@ -16,6 +16,8 @@ private:
 	HGLRC fRC;	// Permanent Rendering Context
 	HWND fWnd;	// Holds Our Window Handle
 
+	float fWidthFactor;
+
 protected:
 	void InitGL(HWND hWnd);
 	void KillGL();
@@ -23,7 +25,8 @@ public:
 
 	TGLStars(HWND hWnd);
 	virtual ~TGLStars();
-	virtual void DrawCircle(int x, int y, float radius, int c);
+	virtual void SetScreenSize(int width, int height);
+	virtual void DrawCircle(float x, float y, float radius);
 	virtual void ShowActiveScreen();
 	virtual bool BeforeDraw();
 	virtual bool AfterDraw();

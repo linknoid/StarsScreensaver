@@ -25,6 +25,13 @@ TGLStars::~TGLStars()
 	SetWindowLong(fWnd, 0, 0);
 }
 
+void TGLStars::SetScreenSize(int width, int height)
+{
+	TraceMethod trace(90, "TGLStars::SetScreenSize()");
+	TStars::SetScreenSize(width, height);
+	fWidthFactor = 2 / (float)width;
+}
+
 void TGLStars::ShowActiveScreen()
 {
 	float distance = 1.0 - (ActiveScreenShowTime / 100.0);
@@ -39,84 +46,48 @@ void TGLStars::ShowActiveScreen()
 	glVertex2d(-distance, -distance);
 };
 
-void TGLStars::DrawCircle(int x, int y, float radius, int c)
+void TGLStars::DrawCircle(float x, float y, float radius)
 {
 //	TraceMethod trace(10, "TGLStars::DrawCircle()");
 	static float color;
-	static int i, j, r;
-	r = (int) radius;
+	static float i, j;
+	static float r;
 	if (radius < 1)
 	{
+		float vpos = y / (float)fHalfHeight - 1.0f;
 		glColor4f(1.0f, 1.0f, 1.0f, radius*radius);
-		glVertex2d((float)(x * 2 - fWidth) / (float)fWidth , (float)(y * 2 - fHeight) / (float)fHeight);
-		glVertex2d((float)(x * 2 - fWidth + 2) / (float)fWidth, (float)(y * 2 - fHeight) / (float)fHeight);
-		return;
+		glVertex2f(x * fWidthFactor - 1.0f, vpos);
+		glVertex2f((x + 1.0f) * fWidthFactor - 1.0f, vpos);
 	} else
 	{
-		glColor3f(1.0f, 1.0f, 1.0f);
-
-
-		if (fAntialias)
+		r = (int)radius;
+		for (j = -r - 1; j < r + 1; j++)
 		{
-			for (j = -r - 1; j < r + 1; j++)
-				for (i = -r - 1; i < r + 1; i++)
-				{
-					float dist = sqrt((i + .5) * (i + .5) + (j + .5) * (j + .5));
-					if (dist < r + 1)
-					{
-						float bright = sqrt(radius - dist);// * (radius - dist);
-						if (bright > 1.0f)
-						{
-							glColor3f(1.0f, 1.0f, 1.0f);
-							glVertex2d((float)((x + i) * 2 - fWidth) / (float)fWidth, (float)((y - j) * 2 - fHeight) / (float)fHeight);
-							glVertex2d((float)((x - i) * 2 - fWidth + 2) / (float)fWidth , (float)((y - j) * 2 - fHeight) / (float)fHeight);
-							i = -i;
-
-						} else
-							if (bright > .001f)
-							{
-								glColor4f(1.0f, 1.0f, 1.0f, bright);
-								glVertex2d((float)((x - i) * 2 - fWidth) / (float)fWidth , (float)((y - j) * 2 - fHeight) / (float)fHeight);
-								glVertex2d((float)((x - i) * 2 - fWidth + 2) / (float)fWidth, (float)((y - j) * 2 - fHeight) / (float)fHeight);
-							}
-					}
-				}
-
-		} else
-		{ // Not Antialiased
-			for (i = 0; i < 2 * r; i++)
+			float vpos = (y - j) / (float)fHalfHeight - 1.0f;
+			for (i = -r - 1; i < r + 1; i++)
 			{
-				// vertical clipping: (top and bottom)
-				if ((y - r + i) >= 0 && (y - r + i) < fHeight)
+				float dist = sqrt(i * i + j * j);
+				if (dist < r + 1)
 				{
-//				int len = (int)sqrt((float)(r * r - (r - i) * (r - i))) * 2;
-					float flen = sqrt((float)(2 * r - i) * i) * 2;
-					int len = (int) flen;
-					int xofs = x - len / 2;
-
-					// left border
-					if (xofs < 0)
+					float bright = sqrt(radius - dist);
+					if (bright > 1.0f)
 					{
-						len += xofs;
-						xofs = 0;
-					}
+						glColor3f(1.0f, 1.0f, 1.0f);
+						glVertex2f((x + i) * fWidthFactor - 1.0f, vpos);
+						glVertex2f((x - i + 1) * fWidthFactor - 1.0f, vpos);
+						i = -i;
 
-					// right border
-					if (xofs + len >= fWidth)
-					{
-						len -= (xofs + len) - fWidth;
-					}
-					int ofs = (y - r + i);
-
-					// note that len may be 0 at this point, 
-					// and no pixels get drawn!
-					glVertex2d((float)((xofs) * 2 - fWidth) / (float)fWidth , (float)(ofs * 2 - fHeight) / (float)fHeight);
-					glVertex2d((float)((len + xofs) * 2 - fWidth) / (float)fWidth , (float)(ofs * 2 - fHeight) / (float)fHeight);
-
+					} else
+						if (bright > .001f)
+						{
+							glColor4f(1.0f, 1.0f, 1.0f, bright);
+							glVertex2f((x - i) * fWidthFactor - 1.0f, vpos);
+							glVertex2f((x - i + 1) * fWidthFactor - 1.0f, vpos);
+						}
 				}
-			}
+			} 
 		}
-	}
+	} 
 }
 
 
@@ -126,6 +97,7 @@ bool TGLStars::BeforeDraw()
 	wglMakeCurrent(fDC, fRC);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBegin(GL_LINES);
+//	glBegin(GL_POINTS); // testing for optimization purposes
 	return true;
 }
 
@@ -150,17 +122,26 @@ void TGLStars::InitGL(HWND hWnd)
 	pfd.iPixelType = PFD_TYPE_RGBA;
 	pfd.cColorBits = 24;
 
+	SendLogMessage(85, "Getting device context"); 
 	fDC = GetDC(hWnd);
 
+	SendLogMessage(85, "Choosing Pixel Format"); 
 	int i = ChoosePixelFormat(fDC, &pfd);
+	SendLogMessage(85, "Setting Pixel Format"); 
 	SetPixelFormat(fDC, i, &pfd);
 
+	SendLogMessage(85, "Creating GL context"); 
 	fRC = wglCreateContext(fDC);
+	SendLogMessage(85, "Making context current"); 
 	wglMakeCurrent(fDC, fRC);
 	
+	SendLogMessage(85, "Creating new quadric"); 
 	quadric = gluNewQuadric();
+	SendLogMessage(85, "Enabling GL blending"); 
 	glEnable(GL_BLEND);
+	SendLogMessage(85, "Setting GL Blend function"); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	SendLogMessage(85, "GL initialization complete"); 
 }
 
 void TGLStars::KillGL()
