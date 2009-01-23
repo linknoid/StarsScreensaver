@@ -28,13 +28,17 @@ TGLStars::~TGLStars()
 void TGLStars::SetScreenSize(int width, int height)
 {
 	TraceMethod trace(90, "TGLStars::SetScreenSize()");
-	TStars::SetScreenSize(width, height);
+	ScreenWidth = width;
+	ScreenHeight = height;
+	fHalfHeight = height / 2;
+	fHalfWidth = width / 2;
+
 	fWidthFactor = 2 / (float)width;
 }
 
-void TGLStars::ShowActiveScreen()
+void TGLStars::ShowActiveScreen(int TimeLeft)
 {
-	float distance = 1.0 - (ActiveScreenShowTime / 100.0);
+	float distance = 1.0 - (TimeLeft / 100.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glVertex2d(-distance, -distance);
 	glVertex2d(distance, -distance);

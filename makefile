@@ -3,7 +3,8 @@ LIBS= -lscrnsave -lmingw32 -lgdi32 -mno-cygwin -mwindows -Uunix
 GLLIBS = -lopengl32 -lglu32 ${LIBS}
 OPTIMIZE= -fbranch-probabilities 
 PROFILE= -profile-arcs
-FLAGS= -O3 -march=i686 -funsafe-math-optimizations
+FLAGS= -O3 -march=i686 
+	#-funsafe-math-optimizations
 INCLUDES= -I/usr/include/mingw
 DEFINES= -DWIN32 -DHAVE_OPENGL \
 		 -DDISABLE_LOGGING
@@ -21,13 +22,13 @@ stars.scr: ${OBJS}
 	g++ ${OBJS} ${GLLIBS} -o stars.scr 
 
 
-stars.o: stars.cpp stars.h ${GLOBALFILES} 
+stars.o: stars.cpp stars.h starsreg.o StarsRenderer.h ${GLOBALFILES} 
 	${CC} -c stars.cpp -o stars.o
 
-glstars.o: glstars.cpp glstars.h stars.h ${GLOBALFILES} 
+glstars.o: glstars.cpp glstars.h StarsRenderer.h ${GLOBALFILES} 
 	${CC} -c glstars.cpp -o glstars.o
 
-starsreg.o: starsreg.cpp starsreg.h glstars.h stars.h ${GLOBALFILES} 
+starsreg.o: starsreg.cpp starsreg.h stars.h ${GLOBALFILES} 
 	${CC} -c starsreg.cpp -o starsreg.o
 
 starsscr.o: starsscr.cpp starsreg.h glstars.h stars.h ${GLOBALFILES} 

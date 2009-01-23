@@ -5,6 +5,7 @@
 #include <time.h>
 #include "consts.h"
 #include "screensave.h"
+#include "stars.h"
 #include "glstars.h"
 #include "logging/logging.h"
 
@@ -65,7 +66,7 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 				SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
 				LastDelay = DELAY;
 			}
-			TGLStars::DrawAllStars();
+			TStars::DrawAllStars();
 			return 0;
 
 		case WM_KEYDOWN:
@@ -102,7 +103,7 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		case WM_CLOSE:
 			SendLogMessage(100, "CLOSE event, hWnd = %i", hWnd);
 			KillTimer(hWnd, 1);
-			TGLStars::DestroyAll();
+			TStars::DestroyAll();
 			DestroyWindow(hWnd);
 			return 0;
 
@@ -176,7 +177,7 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 {
 	TraceMethod trace(99, "CreateScreenSaveWnd");
-	TGLStars *Stars;
+	TStars *Stars;
 	HWND result;
 	DWORD dwStyle = hwndParent ? WS_CHILD : WS_POPUP;
 
@@ -206,7 +207,8 @@ HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 	if (result)
 	{
 		SendLogMessage("Setting window position to %i, %i", rect->left, rect->top);
-		Stars = new TGLStars(result);
+		TStarsRenderer *renderer = new TGLStars(result);
+		Stars = new TStars(renderer);
 		SetWindowPos(result, 0, rect->left, rect->top, 0, 0,
 				SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOSIZE|SWP_SHOWWINDOW);
 	} else

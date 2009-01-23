@@ -30,13 +30,15 @@ void TStars::ClearKBState()
 		KBState.a = false;
 }
 
-TStars::TStars() : TStarsReg()
+TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
 {
 	TraceMethod trace(100, "TStars::TStars");
 	if (fCurInstance == 1)
 		ClearKBState();
 
+	fRenderer = renderer;
 	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
+	SetScreenSize(fRenderer->ScreenWidth, fRenderer->ScreenHeight);
 	x = y = z = NULL;
 	fDelayIterations = 0;
 	fBiggestStarCount = 0;
@@ -46,12 +48,14 @@ TStars::TStars() : TStarsReg()
 TStars::~TStars()
 {
 	TraceMethod trace(100, "TStars::~TStars");
+	delete fRenderer;
 	CleanupStars();
 }
 
 void TStars::SetScreenSize(int width, int height)
 {
 	TraceMethod trace(90, "TStars::SetScreenSize");
+	SendLogMessage(90, "%i, %i", width, height);
 	fWidth = width;
 	fHeight = height;
 	fFloatWidth = width;
@@ -168,7 +172,7 @@ void TStars::DrawAllStars()
 bool TStars::DrawStars()
 {
 	TraceMethod trace(40, "TStars::DrawStars");
-	if (!BeforeDraw())
+	if (!fRenderer->BeforeDraw())
 		return false;
 
 	if (ActiveScreenShowTime > 0)
@@ -177,7 +181,7 @@ bool TStars::DrawStars()
 				((fCurInstance == InstanceCount) && (ActiveScreen == 0)))
 			ActiveScreenShowTime--;
 		if ((ActiveScreen == fCurInstance) || (ActiveScreen == 0))
-			ShowActiveScreen();
+			fRenderer->ShowActiveScreen(ActiveScreenShowTime);
 	}
 
 	MoveStars();
@@ -207,11 +211,11 @@ bool TStars::DrawStars()
 				calcx = (x[i] / z[i]) + fHalfWidth;
 				calcy = (y[i] / z[i]) + fHalfHeight;
 				if ((calcx > 0 && calcx < fFloatWidth) && (calcy > 0 && calcy < fFloatHeight))
-					DrawCircle(calcx, calcy, calcrad);
+					fRenderer->DrawCircle(calcx, calcy, calcrad);
 			}
 		}
 	
-	if (!AfterDraw())
+	if (!fRenderer->AfterDraw())
 		return false;
 
 	++fDelayIterations;
