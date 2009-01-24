@@ -1,5 +1,5 @@
-#ifndef _GLSTARS_H_
-#define _GLSTARS_H_
+#ifndef _GLRENDERER_H_
+#define _GLRENDERER_H_
 
 #include <windows.h>
 #include <GL/gl.h>
@@ -34,4 +34,4 @@ public:
 
 };
 
-#endif // _GLSTARS_H_
+#endif // _GLRENDERER_H_

@@ -1,5 +1,5 @@
 
-#include "glstars.h"
+#include "GLRenderer.h"
 #include "math.h"
 #include "logging/logging.h"
 

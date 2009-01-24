@@ -8,6 +8,7 @@
 
 struct KBStateStruct KBState;
 
+TStarsSettings *TStars::settings = NULL;
 int TStars::ActiveScreen = 0;
 int TStars::ActiveScreenShowTime = 0;
 
@@ -26,8 +27,7 @@ void TStars::ClearKBState()
 		KBState.tab =
 		KBState.del =
 		KBState.home =
-		KBState.end =
-		KBState.a = false;
+		KBState.end = false;
 }
 
 TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
@@ -35,6 +35,7 @@ TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
 	TraceMethod trace(100, "TStars::TStars");
 	if (fCurInstance == 1)
 		ClearKBState();
+	LoadSettings();
 
 	fRenderer = renderer;
 	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
@@ -50,6 +51,7 @@ TStars::~TStars()
 	TraceMethod trace(100, "TStars::~TStars");
 	delete fRenderer;
 	CleanupStars();
+	SaveSettings();
 }
 
 void TStars::SetScreenSize(int width, int height)
@@ -329,12 +331,6 @@ void TStars::UpdateSettings()
 		if (fRadius < 1)
 			fRadius = 1;
 	}
-	if (!LastA && KBState.a)
-	{
-		if (fAntialias) fAntialias = false; else fAntialias = true;
-		SendLogMessage(50, "Antialiasing %sabled", fAntialias ? "en" : "dis");
-	}
-	LastA = KBState.a;
 	if (!LastDel && KBState.del)
 	{
 		ResetDefaults();
@@ -376,5 +372,38 @@ void TStars::SetSpeed(float NewSpeed)
 	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 	zspeed = cos(fAngle) * fSpeed;
 }
+
+bool TStars::LoadSettings()
+{
+	TraceMethod trace(90, "TStarsReg::LoadSettings()");
+	settings->StarCount = fStarCount;
+	settings->Radius = fRadius;
+	settings->Speed = fSpeed;
+	settings->Angle = fAngle;
+	settings->LoadSettings(fCurInstance);
+	fStarCount = settings->StarCount;
+	fRadius = settings->Radius;
+	fSpeed = settings->Speed;
+	fAngle = settings->Angle;
+}
+void TStars::SaveSettings()
+{
+	TraceMethod trace(90, "TStarsReg::SaveSettings()");
+	settings->StarCount = fStarCount;
+	settings->Radius = fRadius;
+	settings->Speed = fSpeed;
+	settings->Angle = fAngle;
+	settings->SaveSettings(fCurInstance);
+}
+
+void TStars::DestroyAll()
+{
+	TraceMethod trace(100, "static TStars::DestroyAll()");
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			delete StarsList[i];
+	delete settings;
+}
+	
 
 

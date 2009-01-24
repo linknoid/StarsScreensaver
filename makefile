@@ -12,7 +12,7 @@ CC= g++ ${FLAGS} ${INCLUDES} ${DEFINES}
 
 LOGHEADER= logging/logging.h 
 GLOBALFILES= ${LOGHEADER} consts.h makefile
-OBJS= logging/logging.o consts.o starsscr.o starsreg.o glstars.o stars.o screensave.o resources.cof
+OBJS= logging/logging.o consts.o starsscr.o starsreg.o RegistrySettings.o GLRenderer.o stars.o screensave.o resources.cof
 
 final: stars.scr
 	strip stars.scr
@@ -25,13 +25,16 @@ stars.scr: ${OBJS}
 stars.o: stars.cpp stars.h starsreg.o StarsRenderer.h ${GLOBALFILES} 
 	${CC} -c stars.cpp -o stars.o
 
-glstars.o: glstars.cpp glstars.h StarsRenderer.h ${GLOBALFILES} 
-	${CC} -c glstars.cpp -o glstars.o
+GLRenderer.o: GLRenderer.cpp GLRenderer.h StarsRenderer.h ${GLOBALFILES} 
+	${CC} -c GLRenderer.cpp -o GLRenderer.o
+
+RegistrySettings.o: RegistrySettings.h RegistrySettings.cpp StarsSettings.h ${GLOBALFILES}
+	${CC} -c RegistrySettings.cpp -o RegistrySettings.o
 
 starsreg.o: starsreg.cpp starsreg.h stars.h ${GLOBALFILES} 
 	${CC} -c starsreg.cpp -o starsreg.o
 
-starsscr.o: starsscr.cpp starsreg.h glstars.h stars.h ${GLOBALFILES} 
+starsscr.o: starsscr.cpp starsreg.h GLRenderer.h stars.h ${GLOBALFILES} 
 	${CC} -c starsscr.cpp -o starsscr.o
 
 screensave.o: screensave.cpp screensave.h ${GLOBALFILES}

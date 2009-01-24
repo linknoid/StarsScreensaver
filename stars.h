@@ -4,11 +4,12 @@
 #include "consts.h"
 #include "starsreg.h"
 #include "StarsRenderer.h"
+#include "StarsSettings.h"
 
 extern struct KBStateStruct
 {
 	bool rightarrow, leftarrow, uparrow, downarrow;
-	bool pageup, pagedown, a, plus, minus, tab, del, home, end;
+	bool pageup, pagedown, plus, minus, tab, del, home, end;
 } KBState;
 
 
@@ -32,6 +33,8 @@ protected:
 	int zfar;
 	float xspeed, zspeed;
 
+	bool LoadSettings();
+	void SaveSettings();
 
 	void InitStars();
 	void CleanupStars();
@@ -51,6 +54,9 @@ public:
 	virtual void MoveStars();
 
 	void OnKeyDel();
+
+	static TStarsSettings *settings;
+	static void DestroyAll();
 };
 
 #endif // _STARS_H_

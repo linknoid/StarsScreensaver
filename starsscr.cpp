@@ -6,7 +6,8 @@
 #include "consts.h"
 #include "screensave.h"
 #include "stars.h"
-#include "glstars.h"
+#include "GLRenderer.h"
+#include "RegistrySettings.h"
 #include "logging/logging.h"
 
 
@@ -158,9 +159,6 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 		case 46: // Delete key
 			KBState.del = newState;
 			break;
-		case 65: // 'a' key
-			KBState.a = newState;
-			break;
 		case 107: // Keypad +
 			KBState.plus = newState;
 			break;
@@ -220,6 +218,8 @@ HWND CreateScreenSaveWnd(HWND hwndParent, RECT *rect)
 void InitScreenSaveClass(BOOL fPreview, HINSTANCE Instance)
 {
 	TraceMethod trace(99, "InitScreenSaveClass");
+	TStars::settings = new TRegistrySettings();
+
 	WNDCLASSEX	wcx;
 
 	wcx.cbSize			= sizeof(WNDCLASSEX);
