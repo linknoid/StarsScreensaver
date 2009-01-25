@@ -33,7 +33,6 @@ Tab switches keyboard control between multiple monitors"
 BOOL Configure(HWND hDlg)
 {
 	MessageBox(hDlg, USAGE_STRING, "Instructions", MB_OK);
-	EndDialog(hDlg, TRUE);
 	return TRUE;
 }
 

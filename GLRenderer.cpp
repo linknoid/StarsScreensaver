@@ -52,14 +52,18 @@ void TGLStars::ShowActiveScreen(int TimeLeft)
 	glVertex2d(-distance, -distance);
 };
 
+// This variable should be in the class private section, but
+// it runs slightly faster if I put it here as a global
+float fVerticalScreenLine;
+
 void TGLStars::DrawPoint(float x, float y, float brightness)
 {
 	if (x < 0 || y < 0 || x > fWidth || y > fHeight)
 		return;
-	float vpos = floor(y) / fHalfHeight - 1.0f;
 	glColor4f(1.0f, 1.0f, 1.0f, brightness);
-	glVertex2f(floor(x) * fWidthFactor - 1.0f, vpos);
-	glVertex2f((floor(x) + 1.0f) * fWidthFactor - 1.0f, vpos);
+	x = floor(x);
+	glVertex2f(x * fWidthFactor - 1.0f, fVerticalScreenLine);
+	glVertex2f((x + 1.0f) * fWidthFactor - 1.0f, fVerticalScreenLine);
 }
 
 void TGLStars::DrawLine(float Fromx, float Tox, float y)
@@ -71,10 +75,9 @@ void TGLStars::DrawLine(float Fromx, float Tox, float y)
 	if (Tox > fWidth)
 		Tox = fWidth;
 
-	float vpos = floor(y) / fHalfHeight - 1.0f;
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex2f(Fromx * fWidthFactor - 1.0f, vpos);
-	glVertex2f(Tox * fWidthFactor - 1.0f, vpos);
+	glVertex2f(Fromx * fWidthFactor - 1.0f, fVerticalScreenLine);
+	glVertex2f(Tox * fWidthFactor - 1.0f, fVerticalScreenLine);
 }
 
 void TGLStars::DrawCircleExact(float x, float y, float radius)
@@ -86,11 +89,17 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 		float LeftXMult = 1.0f - RightXMult;
 		float BottomYMult = y - floor(y);
 		float TopYMult = 1.0f - BottomYMult;
+		RightXMult = sqrt(RightXMult);
+		LeftXMult = sqrt(LeftXMult);
+		BottomYMult = sqrt(BottomYMult);
+		TopYMult = sqrt(TopYMult);
 
-		DrawPoint(x, y, Brightness * sqrt(LeftXMult * TopYMult));
-		DrawPoint(x, y + 1.0f, Brightness * sqrt(LeftXMult * BottomYMult));
-		DrawPoint(x + 1.0f, y, Brightness * sqrt(RightXMult * TopYMult));
-		DrawPoint(x + 1.0f, y + 1.0f, Brightness * sqrt(RightXMult * BottomYMult));
+		fVerticalScreenLine = floor(y) / fHalfHeight - 1.0f;
+		DrawPoint(x, y, Brightness * (LeftXMult * TopYMult));
+		DrawPoint(x + 1.0f, y, Brightness * (RightXMult * TopYMult));
+		fVerticalScreenLine = floor(y + 1.0f) / fHalfHeight - 1.0f;
+		DrawPoint(x, y + 1.0f, Brightness * (LeftXMult * BottomYMult));
+		DrawPoint(x + 1.0f, y + 1.0f, Brightness * (RightXMult * BottomYMult));
 	}
 	else
 	{
@@ -99,21 +108,25 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 
 		float r = ceil(radius);
 
-		float bottom = -r - 1;
-		float top = r + 1;
+		float bottom = -r - 1.0f;
+		float top = r + 1.0f;
 		if (y + bottom < 0)
 			bottom = -floor(y);
 		if (y + top > fHeight)
 			top = ceil(y);
+
+		float minleft = -x;
+		float maxright = fWidth - x;
 		for (float j = bottom; j < top; j++)
 		{
+			fVerticalScreenLine = floor(y + j) / fHalfHeight - 1.0f;
 			float ydist = j - yfraction;
 
-			float left = -r - 1;
-			float right = r + 1;
-			if (x + left < 0)
+			float left = -r - 1.0f;
+			float right = r + 1.0f;
+			if (left < minleft) // left is a negative number, if we're past the left edge
 				left = -floor(x);
-			if (x + right > fWidth)
+			if (right > maxright) // right is a positive number, if we're past the right edge
 				right = ceil(x);
 
 			for (float i = left; i < right; i++)
@@ -135,12 +148,12 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 				}
 				else
 				{
-//						if (i <= -1.0f)
-//						{
-//							DrawLine(floor(x) + i, floor(x) - i - 1.0f, y + j);
-//							i = -i - 1.0f;
-//						}
-//						else
+					if (r > 5.0f && i <= -1.0f)
+					{
+						DrawLine(floor(x) + i, floor(x) - i, y + j);
+						i = -i - 1.0f;
+					}
+					else
 					{
 						DrawPoint(x + i, y + j, 1.0f);
 					}
@@ -155,6 +168,7 @@ void TGLStars::DrawCircle(float x, float y, float radius)
 //	TraceMethod trace(10, "TGLStars::DrawCircle()");
 	if (radius < 1)
 	{
+		fVerticalScreenLine = floor(y) / fHalfHeight - 1.0f;
 		DrawPoint(x, y, radius * radius);
 	}
 	else
@@ -216,7 +230,7 @@ void TGLStars::InitGL(HWND hWnd)
 	ZeroMemory(&pfd, sizeof(pfd));
 	pfd.nSize = sizeof(pfd);
 	pfd.nVersion = 1;
-	pfd.dwFlags = PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	pfd.iPixelType = PFD_TYPE_RGBA;
 	pfd.cColorBits = 24;
 
