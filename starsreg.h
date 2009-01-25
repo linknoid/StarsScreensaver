@@ -13,6 +13,7 @@ protected:
 
 	int fStarCount; 
 	float fRadius, fSpeed, fAngle;
+	bool fSubpixelPositioning;
 
 	
 	virtual void SetSpeed(float NewSpeed);

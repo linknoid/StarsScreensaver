@@ -19,7 +19,9 @@ TRegistrySettings::~TRegistrySettings()
 bool TRegistrySettings::LoadSettings(int ScreenID)
 {
 	TraceMethod trace(90, "TStarsReg::LoadSettings()");
+	Speed *= 1000;
 	Angle *= 7200.0;
+	int subpixel = SubpixelPositioning;
 	HKEY key;
 	if (RegOpenKeyEx( HKEY_CURRENT_USER, MY_HKEY, 0, KEY_QUERY_VALUE, &key)
 			== ERROR_SUCCESS)
@@ -29,8 +31,11 @@ bool TRegistrySettings::LoadSettings(int ScreenID)
 		GetRegistryValue(ScreenID, key, "speed", Speed);
 		GetRegistryValue(ScreenID, key, "angle", Angle);
 		GetRegistryValue(ScreenID, key, "delay", DELAY);
+		GetRegistryValue(ScreenID, key, "subpixel", subpixel);
 	}
 	Angle /= 7200.0;
+	Speed /= 1000;
+	SubpixelPositioning = subpixel > 0;
 }
 
 void TRegistrySettings::SaveSettings(int ScreenID)
@@ -45,9 +50,10 @@ void TRegistrySettings::SaveSettings(int ScreenID)
 	{
 		SetRegistryValue(ScreenID, key, "starcount", StarCount);
 		SetRegistryValue(ScreenID, key, "radius", Radius);
-		SetRegistryValue(ScreenID, key, "speed", Speed);
+		SetRegistryValue(ScreenID, key, "speed", Speed * 1000);
 		SetRegistryValue(ScreenID, key, "angle", Angle * 7200);
 		SetRegistryValue(ScreenID, key, "delay", DELAY);
+		SetRegistryValue(ScreenID, key, "subpixel", SubpixelPositioning ? 1 : 0);
 	}
 }
 

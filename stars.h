@@ -9,7 +9,7 @@
 extern struct KBStateStruct
 {
 	bool rightarrow, leftarrow, uparrow, downarrow;
-	bool pageup, pagedown, plus, minus, tab, del, home, end;
+	bool s, pageup, pagedown, plus, minus, tab, del, home, end;
 } KBState;
 
 
@@ -17,7 +17,7 @@ class TStars : public TStarsReg
 {
 private:
 	int fDelayIterations;
-	bool LastA, LastPlus, LastMinus, LastDel;
+	bool LastS, LastPlus, LastMinus, LastDel;
 	void ClearKBState();
 protected:
 	static int ActiveScreen;
@@ -25,7 +25,8 @@ protected:
 
 	TStarsRenderer *fRenderer;
 	int fBiggestStarCount;
-	int fWidth, fHeight, fHalfWidth, fHalfHeight;
+	int fWidth, fHeight;
+	float fHalfWidth, fHalfHeight;
 	float fFloatHeight, fFloatWidth;
 	
 	float *x, *y, *z;

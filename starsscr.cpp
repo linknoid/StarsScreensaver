@@ -26,6 +26,7 @@ PageUp and PageDown changes number of stars.\n\
 Keypad + and - change star size.\n\
 Delete resets everything to default.\n\
 Home (increase) and End (decrease) change the frame rate\n\
+s switches the smooth but slow subpixel rendering on and off\n\
 Tab switches keyboard control between multiple monitors"
 
 
@@ -159,6 +160,8 @@ bool handleKey(WPARAM wParam, LPARAM lParam)
 		case 46: // Delete key
 			KBState.del = newState;
 			break;
+		case 'S': // S key
+			KBState.s = newState;
 		case 107: // Keypad +
 			KBState.plus = newState;
 			break;

@@ -35,10 +35,11 @@ TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
 	TraceMethod trace(100, "TStars::TStars");
 	if (fCurInstance == 1)
 		ClearKBState();
+	fRenderer = renderer;
 	LoadSettings();
 
-	fRenderer = renderer;
-	fWidth = fHalfWidth = fHeight = fHalfHeight = 0;
+	fHalfHeight = fHalfWidth = 0;
+	fHeight = fWidth = 0;
 	SetScreenSize(fRenderer->ScreenWidth, fRenderer->ScreenHeight);
 	x = y = z = NULL;
 	fDelayIterations = 0;
@@ -49,9 +50,9 @@ TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
 TStars::~TStars()
 {
 	TraceMethod trace(100, "TStars::~TStars");
+	SaveSettings();
 	delete fRenderer;
 	CleanupStars();
-	SaveSettings();
 }
 
 void TStars::SetScreenSize(int width, int height)
@@ -212,8 +213,14 @@ bool TStars::DrawStars()
 			{
 				calcx = (x[i] / z[i]) + fHalfWidth;
 				calcy = (y[i] / z[i]) + fHalfHeight;
-				if ((calcx > 0 && calcx < fFloatWidth) && (calcy > 0 && calcy < fFloatHeight))
-					fRenderer->DrawCircle(calcx, calcy, calcrad);
+				if ((calcx > -calcrad && calcx - calcrad < fFloatWidth) 
+						&& (calcy > -calcrad && calcy - calcrad < fFloatHeight))
+				{
+					if (fSubpixelPositioning)
+						fRenderer->DrawCircleExact(calcx, calcy, calcrad);
+					else
+						fRenderer->DrawCircle(calcx, calcy, calcrad);
+				}
 			}
 		}
 	
@@ -285,6 +292,14 @@ void TStars::UpdateSettings()
 	}
 	if ((ActiveScreen != fCurInstance) && (ActiveScreen != 0))
 		return;
+	if (KBState.s && !LastS)
+	{
+		if (fSubpixelPositioning) 
+			fSubpixelPositioning = false;
+		else
+			fSubpixelPositioning = true;
+	}
+	LastS = KBState.s;
 	if (KBState.rightarrow)
 	{
 		SendLogMessage(50, "Right arrow, rotate clockwise");
@@ -300,6 +315,8 @@ void TStars::UpdateSettings()
 	if (KBState.uparrow)
 	{
 		SendLogMessage(50, "Up arrow, speed up");
+		if (fSpeed < .01)
+			fSpeed = .01;
 		SetSpeed(fSpeed * 1.05);
 	}
 	if (KBState.downarrow)
@@ -380,11 +397,13 @@ bool TStars::LoadSettings()
 	settings->Radius = fRadius;
 	settings->Speed = fSpeed;
 	settings->Angle = fAngle;
+	settings->SubpixelPositioning = true;
 	settings->LoadSettings(fCurInstance);
 	fStarCount = settings->StarCount;
 	fRadius = settings->Radius;
 	fSpeed = settings->Speed;
 	fAngle = settings->Angle;
+	fSubpixelPositioning = settings->SubpixelPositioning;
 }
 void TStars::SaveSettings()
 {
@@ -393,6 +412,7 @@ void TStars::SaveSettings()
 	settings->Radius = fRadius;
 	settings->Speed = fSpeed;
 	settings->Angle = fAngle;
+	settings->SubpixelPositioning = fSubpixelPositioning;
 	settings->SaveSettings(fCurInstance);
 }
 

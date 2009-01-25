@@ -9,6 +9,7 @@ public:
 	int StarCount;
 	float Radius, Speed, Angle;
 	int Delay;
+	bool SubpixelPositioning;
 
 	virtual bool LoadSettings(int Instance) = 0;
 	virtual void SaveSettings(int Instance) = 0;
@@ -18,6 +19,7 @@ public:
 		Speed = 5 * DELAY;
 		Angle = 0;
 		StarCount = 10000;
+		SubpixelPositioning = true;
 	}
 };
 

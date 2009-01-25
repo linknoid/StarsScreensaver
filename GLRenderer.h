@@ -17,8 +17,11 @@ private:
 	HWND fWnd;	// Holds Our Window Handle
 
 	float fWidthFactor;
-	int fHalfHeight, fHalfWidth;
+	float fHeight, fWidth;
+	float fHalfHeight, fHalfWidth;
 
+	inline void DrawPoint(float x, float y, float brightness);
+	inline void DrawLine(float Fromx, float Tox, float y);
 protected:
 	void InitGL(HWND hWnd);
 	void KillGL();
@@ -28,6 +31,7 @@ public:
 	virtual ~TGLStars();
 	virtual void SetScreenSize(int width, int height);
 	virtual void DrawCircle(float x, float y, float radius);
+	virtual void DrawCircleExact(float x, float y, float radius);
 	virtual void ShowActiveScreen(int TimeLeft);
 	virtual bool BeforeDraw();
 	virtual bool AfterDraw();
