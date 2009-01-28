@@ -67,16 +67,22 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 				SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
 				LastDelay = DELAY;
 			}
-			TStars::DrawAllStars();
+			TStars::DrawStarsAll();
 			return 0;
 
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 			SendLogMessage(90, "WM_KEYDOWN OR KEYUP event, hWnd = %i", hWnd);
 			if (handleKey(wParam, lParam))
+			{
+				if (message == WM_KEYDOWN)
+					if (!lParam & (1 << 30))
+						TStars::HandleKeyEventAll();
 				return 0;
+			}
 			else
 				PostMessage(hWnd, WM_CLOSE, 0, 0);
+			break;
 
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
@@ -96,7 +102,7 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 					GetCursorPos(&OldCursorPos);
 				first = false;
 				GetCursorPos(&CursorPos);
-				if(abs(CursorPos.x - OldCursorPos.x) >= 3 || abs(CursorPos.y - OldCursorPos.y) >= 3)
+				if (abs(CursorPos.x - OldCursorPos.x) >= 10 || abs(CursorPos.y - OldCursorPos.y) >= 10)
 					PostMessage(hWnd, WM_CLOSE, 0, 0);
 			}
 			return 0;

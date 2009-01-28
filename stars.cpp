@@ -8,7 +8,9 @@
 
 struct KBStateStruct KBState;
 
-TStarsSettings *TStars::settings = NULL;
+int TStars::InstanceCount = 0;
+TStars* TStars::StarsList[32]; // maximum of 31 displays (0 reserved for all)
+TStarsSettings* TStars::settings = NULL;
 int TStars::ActiveScreen = 0;
 int TStars::ActiveScreenShowTime = 0;
 
@@ -30,12 +32,18 @@ void TStars::ClearKBState()
 		KBState.end = false;
 }
 
-TStars::TStars(TStarsRenderer *renderer) : TStarsReg()
+TStars::TStars(TStarsRenderer *renderer)
 {
 	TraceMethod trace(100, "TStars::TStars");
-	if (fCurInstance == 1)
-		ClearKBState();
+	fCurInstance = RegisterInstance(this);
+	
 	fRenderer = renderer;
+
+	fRadius = 8000;
+	fSpeed = 5 * DELAY;
+	fAngle = 0;
+	fStarCount = 10000;
+	
 	LoadSettings();
 
 	fHalfHeight = fHalfWidth = 0;
@@ -53,6 +61,7 @@ TStars::~TStars()
 	SaveSettings();
 	delete fRenderer;
 	CleanupStars();
+	UnregisterInstance(fCurInstance);
 }
 
 void TStars::SetScreenSize(int width, int height)
@@ -164,14 +173,6 @@ void TStars::ResetDefaults()
 	InitStars();
 }
 
-void TStars::DrawAllStars()
-{
-	TraceMethod trace(40, "TStars::DrawAllStars");
-	for (int i = 1; i <= InstanceCount; i++)
-		if (StarsList[i])
-			StarsList[i]->DrawStars();
-}
-
 bool TStars::DrawStars()
 {
 	TraceMethod trace(40, "TStars::DrawStars");
@@ -227,9 +228,7 @@ bool TStars::DrawStars()
 	if (!fRenderer->AfterDraw())
 		return false;
 
-	++fDelayIterations;
-	fDelayIterations %= (int)(100 / DELAY);
-	if (fDelayIterations == 0)
+	if (++fDelayIterations >= 100 / DELAY)
 		UpdateSettings();
 }
 
@@ -275,6 +274,7 @@ void TStars::MoveStars()
 void TStars::UpdateSettings()
 {
 	TraceMethod trace(49, "TStars::UpdateSettings");
+	fDelayIterations = 0;
 	{
 		static bool last = false;
 		if (!last && KBState.tab)
@@ -358,7 +358,7 @@ void TStars::UpdateSettings()
 	{
 		if (KBState.home == 1)
 		{
-			SetAllDelay(DELAY + 1);
+			SetDelayAll(DELAY + 1);
 			SendLogMessage(50, "Keypad home, increasing delay");
 		}
 		KBState.home %= 5;
@@ -368,7 +368,7 @@ void TStars::UpdateSettings()
 	{
 		if (KBState.end == 1)
 		{
-			SetAllDelay(DELAY - 1);
+			SetDelayAll(DELAY - 1);
 			SendLogMessage(50, "Keypad end, decreasing delay");
 		}
 		KBState.end %= 5;
@@ -385,10 +385,17 @@ void TStars::OnKeyDel()
 
 void TStars::SetSpeed(float NewSpeed)
 {
-	TStarsReg::SetSpeed(NewSpeed);
+	fSpeed = NewSpeed;
 	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
 	zspeed = cos(fAngle) * fSpeed;
 }
+
+void TStars::SetDelay(int NewDelay)
+{
+	SetSpeed(fSpeed * NewDelay / DELAY);
+}
+
+
 
 bool TStars::LoadSettings()
 {
@@ -416,14 +423,59 @@ void TStars::SaveSettings()
 	settings->SaveSettings(fCurInstance);
 }
 
+void TStars::HandleKeyEventAll()
+{
+	TraceMethod trace(50, "TStars::HandleKeyEventAll");
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->UpdateSettings();
+}
+
+void TStars::DrawStarsAll()
+{
+	TraceMethod trace(40, "TStars::DrawAllStars");
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->DrawStars();
+}
+
+int TStars::RegisterInstance(TStars* instance)
+{
+	int ID = ++InstanceCount;
+	if (ID == 1)
+		ClearKBState();
+	if (ID < 32)
+		StarsList[ID] = instance;
+	SendLogMessage(90, "Instance #%i", ID);
+	return ID;
+}
+
+void TStars::UnregisterInstance(int ID)
+{
+	if (ID > 0 && ID < 32)
+		StarsList[ID] = NULL;
+}
+
 void TStars::DestroyAll()
 {
-	TraceMethod trace(100, "static TStars::DestroyAll()");
+	TraceMethod trace(100, "static TStars::DestroyAll");
 	for (int i = 1; i <= InstanceCount; i++)
 		if (StarsList[i])
 			delete StarsList[i];
 	delete settings;
 }
-	
+
+void TStars::SetDelayAll(int NewDelay)
+{
+	TraceMethod trace(50, "TStars::SetDelayAll()");
+	if (NewDelay < 5)
+		NewDelay = 5;
+	if (NewDelay > 50)
+		NewDelay = 50;
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->SetDelay(NewDelay);
+	DELAY = NewDelay;
+}
 
 

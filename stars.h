@@ -2,7 +2,6 @@
 #define _STARS_H_
 
 #include "consts.h"
-#include "starsreg.h"
 #include "StarsRenderer.h"
 #include "StarsSettings.h"
 
@@ -13,13 +12,19 @@ extern struct KBStateStruct
 } KBState;
 
 
-class TStars : public TStarsReg
+class TStars
 {
 private:
 	int fDelayIterations;
 	bool LastS, LastPlus, LastMinus, LastDel;
-	void ClearKBState();
+	static void ClearKBState();
 protected:
+	static int RegisterInstance(TStars* instance);
+	static void UnregisterInstance(int ID);
+	static int InstanceCount;
+	static TStars *StarsList[32]; // maximum of 32 displays
+	int fCurInstance;
+	
 	static int ActiveScreen;
 	static int ActiveScreenShowTime;
 
@@ -28,6 +33,10 @@ protected:
 	int fWidth, fHeight;
 	float fHalfWidth, fHalfHeight;
 	float fFloatHeight, fFloatWidth;
+
+	int fStarCount; 
+	float fRadius, fSpeed, fAngle;
+	bool fSubpixelPositioning;
 	
 	float *x, *y, *z;
 
@@ -40,7 +49,8 @@ protected:
 	void InitStars();
 	void CleanupStars();
 
-	virtual void SetSpeed(float NewSpeed);
+	void SetSpeed(float NewSpeed);
+	void SetDelay(int NewDelay);
 	
 public:
 	TStars(TStarsRenderer *renderer);
@@ -50,14 +60,17 @@ public:
 	virtual void UpdateSettings();
 	virtual void SetScreenSize(int width, int height);
 
-	static void DrawAllStars();
 	virtual bool DrawStars();
 	virtual void MoveStars();
 
 	void OnKeyDel();
 
 	static TStarsSettings *settings;
+
+	static void HandleKeyEventAll();
+	static void DrawStarsAll();
 	static void DestroyAll();
+	static void SetDelayAll(int NewDelay);
 };
 
 #endif // _STARS_H_
