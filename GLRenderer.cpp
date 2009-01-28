@@ -32,10 +32,9 @@ void TGLStars::SetScreenSize(int width, int height)
 	ScreenHeight = height;
 	fHeight = height;
 	fWidth = width;
-	fHalfHeight = height / 2;
-	fHalfWidth = width / 2;
 
-	fWidthFactor = 2 / (float)width;
+	fPixelHeight = 2.0f / fHeight;
+	fPixelWidth = 2.0f / fWidth;
 }
 
 void TGLStars::ShowActiveScreen(int TimeLeft)
@@ -52,31 +51,20 @@ void TGLStars::ShowActiveScreen(int TimeLeft)
 	glVertex2d(-distance, -distance);
 };
 
-// This variable should be in the class private section, but
-// it runs slightly faster if I put it here as a global
-float fVerticalScreenLine;
-
-void TGLStars::DrawPoint(float x, float y, float brightness)
+void TGLStars::DrawPoint(float x, float brightness)
 {
-	if (x < 0 || y < 0 || x > fWidth || y > fHeight)
-		return;
 	glColor4f(1.0f, 1.0f, 1.0f, brightness);
-	glVertex2f(x * fWidthFactor - 1.0f, fVerticalScreenLine);
-	glVertex2f((x + 1.0f) * fWidthFactor - 1.0f, fVerticalScreenLine);
+	float fromx = x * fPixelWidth - 1.0f;
+	float tox = fromx + fPixelWidth;
+	glVertex2f(fromx, fVerticalScreenLine);
+	glVertex2f(tox, fVerticalScreenLine);
 }
 
-void TGLStars::DrawLine(float Fromx, float Tox, float y)
+void TGLStars::DrawLine(float Fromx, float Tox)
 {
-	if (y < 0.0f || y > fHeight || Fromx > fWidth || Tox < 0.0f)
-		return;
-	if (Fromx < 0.0f)
-		Fromx = 0.0f;
-	if (Tox > fWidth)
-		Tox = fWidth;
-
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex2f(Fromx * fWidthFactor - 1.0f, fVerticalScreenLine);
-	glVertex2f(Tox * fWidthFactor - 1.0f, fVerticalScreenLine);
+	glVertex2f(Fromx * fPixelWidth - 1.0f, fVerticalScreenLine);
+	glVertex2f(Tox * fPixelWidth - 1.0f, fVerticalScreenLine);
 }
 
 void TGLStars::DrawCircleExact(float x, float y, float radius)
@@ -89,16 +77,16 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 	{
 		float Brightness = radius * radius;
 		float RightXMult = sqrt(xfraction);
-		float LeftXMult = (1.0f - xfraction);
+		float LeftXMult = sqrt(1.0f - xfraction);
 		float BottomYMult = sqrt(yfraction);
 		float TopYMult = sqrt(1.0f - yfraction);
 
-		fVerticalScreenLine = yfloor / fHalfHeight - 1.0f;
-		DrawPoint(xfloor, yfloor, Brightness * (LeftXMult * TopYMult));
-		DrawPoint(xfloor + 1.0f, yfloor, Brightness * (RightXMult * TopYMult));
-		fVerticalScreenLine = (yfloor + 1.0f) / fHalfHeight - 1.0f;
-		DrawPoint(xfloor, yfloor + 1.0f, Brightness * (LeftXMult * BottomYMult));
-		DrawPoint(xfloor + 1.0f, yfloor + 1.0f, Brightness * (RightXMult * BottomYMult));
+		fVerticalScreenLine = yfloor * fPixelHeight - 1.0f;
+		DrawPoint(xfloor, Brightness * (LeftXMult * TopYMult));
+		DrawPoint(xfloor + 1.0f, Brightness * (RightXMult * TopYMult));
+		fVerticalScreenLine = (yfloor + 1.0f) * fPixelHeight - 1.0f;
+		DrawPoint(xfloor, Brightness * (LeftXMult * BottomYMult));
+		DrawPoint(xfloor + 1.0f, Brightness * (RightXMult * BottomYMult));
 	}
 	else
 	{
@@ -113,9 +101,10 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 
 		float minleft = -xfloor;
 		float maxright = fWidth - xfloor;
+
 		for (float j = bottom; j < top; j++)
 		{
-			fVerticalScreenLine = floor(y + j) / fHalfHeight - 1.0f;
+			fVerticalScreenLine = (yfloor + j) * fPixelHeight - 1.0f;
 			float ydist = j - yfraction;
 
 			float left = -r - 1.0f;
@@ -138,23 +127,27 @@ void TGLStars::DrawCircleExact(float x, float y, float radius)
 						bright = sqrt(bright);
 						if (bright > .001f)
 						{
-							DrawPoint(xfloor + i, y + j, bright);
+							DrawPoint(xfloor + i, bright);
 						}
 					}
 				}
 				else
 				{
-					if (r > 5.0f && i <= -1.0f)
+					if (r > 3.0f && i <= -1.0f)
 					{
+						// Drawing a line isn't really any more efficient
+						// than drawing the pixels individually, but by
+						// handling them in a group, we avoid a bunch of
+						// calculations in the above loop
 						float lineright = xfloor - i;
 						if (lineright > fWidth)
 							lineright = fWidth;
-						DrawLine(xfloor + i, lineright, y + j);
+						DrawLine(xfloor + i, lineright);
 						i = -i - 1.0f;
 					}
 					else
 					{
-						DrawPoint(xfloor + i, yfloor + j, 1.0f);
+						DrawPoint(xfloor + i, 1.0f);
 					}
 				}
 			} 
@@ -169,15 +162,15 @@ void TGLStars::DrawCircle(float x, float y, float radius)
 	y = round(y);
 	if (radius < 1)
 	{
-		fVerticalScreenLine = y / fHalfHeight - 1.0f;
-		DrawPoint(x, y, radius * radius);
+		fVerticalScreenLine = y * fPixelHeight - 1.0f;
+		DrawPoint(x, radius * radius);
 	}
 	else
 	{
 		float r = floor(radius);
 		for (float j = -r - 1; j < r + 1; j++)
 		{
-			float vpos = (y - j) / fHalfHeight - 1.0f;
+			fVerticalScreenLine = (y - j) * fPixelHeight - 1.0f;
 			for (float i = -r - 1; i < r + 1; i++)
 			{
 				float dist = sqrt(i * i + j * j);
@@ -187,15 +180,15 @@ void TGLStars::DrawCircle(float x, float y, float radius)
 					if (bright > 1.0f)
 					{
 						glColor3f(1.0f, 1.0f, 1.0f);
-						glVertex2f((x + i) * fWidthFactor - 1.0f, vpos);
-						glVertex2f((x - i + 1) * fWidthFactor - 1.0f, vpos);
+						glVertex2f((x + i) * fPixelWidth - 1.0f, fVerticalScreenLine);
+						glVertex2f((x - i + 1.0f) * fPixelWidth - 1.0f, fVerticalScreenLine);
 						i = -i;
 					}
 					else if (bright > .001f)
 					{
 						glColor4f(1.0f, 1.0f, 1.0f, bright);
-						glVertex2f((x - i) * fWidthFactor - 1.0f, vpos);
-						glVertex2f((x - i + 1) * fWidthFactor - 1.0f, vpos);
+						glVertex2f((x - i) * fPixelWidth - 1.0f, fVerticalScreenLine);
+						glVertex2f((x - i + 1.0f) * fPixelWidth - 1.0f, fVerticalScreenLine);
 					}
 				}
 			} 

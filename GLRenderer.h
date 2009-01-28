@@ -16,12 +16,13 @@ private:
 	HGLRC fRC;	// Permanent Rendering Context
 	HWND fWnd;	// Holds Our Window Handle
 
-	float fWidthFactor;
 	float fHeight, fWidth;
 	float fHalfHeight, fHalfWidth;
+	float fPixelHeight, fPixelWidth;
+	float fVerticalScreenLine;
 
-	inline void DrawPoint(float x, float y, float brightness);
-	inline void DrawLine(float Fromx, float Tox, float y);
+	inline void DrawPoint(float x, float brightness);
+	inline void DrawLine(float Fromx, float Tox);
 protected:
 	void InitGL(HWND hWnd);
 	void KillGL();
