@@ -41,29 +41,19 @@ Tab: Switches between multiple monitors
 
 
 
-OTHER INFO (NOT RELEVANT FOR MOST PEOPLE):
-
-The main purpose of the standalone version is for development and debugging 
-purposes.  Most people won't ever need to worry about it.  It requires you to
-get and compile SDL before you can use it.  It takes up to 3 optional
-parameters on the command line.  The first is the number of stars to use.  The
-second and third are screen resolution.
-
-Example:
-  stars.exe 10000 800 600
-creates an 800x600 window with 10,000 stars.
-
-
-
 History of versions:
 
-1.2: (May 2006)  Initial released version, older versions were internal.  
-	Just quick hacked together to get it working, everything in one big file.
+1.0 (September 2005) Initial release, just kind of hacked together in one source file, mixing SDL with OpenGL, standalone app with screensaver.
 
-1.4: (September 2006) Refactored the whole thing into seperate rendering, star movement, settings, etc.
-	Added multi-monitor support.
+1.1 (May 2006) Added anti-aliasing.
 
-1.5: (October 2006) Massive optimization effort.
+1.2: (May 2006)  Minor optimizations, added help dialog, fixed centering on smaller than 1280x1024 screens.
+
+1.3: (June 2006) Refactored the whole thing into seperate classes for rendering, star movement, settings, etc.  Added the ability to turn on logging.
+
+1.4: (September 2006) Added multi-monitor support.
+
+1.5: (October 2006) Massive optimization effort from 1.4.
 	Went a bit overboard on the default compiler flags, causing rendering problems on some systems. -funsafe-math-optimizations works great on some systems, but others gives weirdness.
 
 1.6 (January 2009) Fixing a bunch of things that have bugged me for a while:
@@ -71,4 +61,6 @@ History of versions:
 	Speed and angle are saved as integers (Windows registry limitation), but represented internally as floats.  Increased the multiplier they are saved with so they don't round so noticably.
 	Created a new "smooth" scrolling mode.  This mode uses fractional pixel positions to render (instead of jumping from 2 to 3, it might go 2.1 2.7 3.3 etc), but the old mode is 2.5x faster.
 	Fixed a bug that was causing a crash with the configure dialog.
+
+1.7 (January 2009) Major optimization from 1.6 of the subpixel rendering mode.  Most of the improvement came from removing redundant calls to floor() and fixing a couple incorrect boundary conditions.
 
