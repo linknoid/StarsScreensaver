@@ -19,6 +19,7 @@ TRegistrySettings::~TRegistrySettings()
 bool TRegistrySettings::LoadSettings(int ScreenID)
 {
 	TraceMethod trace(90, "TStarsReg::LoadSettings()");
+	ResetDefaults();
 	Speed *= 1000;
 	Angle *= 7200.0;
 	int subpixel = SubpixelPositioning;

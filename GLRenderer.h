@@ -17,7 +17,6 @@ private:
 	HWND fWnd;	// Holds Our Window Handle
 
 	float fHeight, fWidth;
-	float fHalfHeight, fHalfWidth;
 	float fPixelHeight, fPixelWidth;
 	float fVerticalScreenLine;
 

@@ -15,7 +15,7 @@ extern struct KBStateStruct
 class TStars
 {
 private:
-	int fDelayIterations;
+	float fTimeRemaining;
 	bool LastS, LastPlus, LastMinus, LastDel;
 	static void ClearKBState();
 protected:
@@ -24,7 +24,7 @@ protected:
 	static int InstanceCount;
 	static TStars *StarsList[32]; // maximum of 32 displays
 	int fCurInstance;
-	
+
 	static int ActiveScreen;
 	static int ActiveScreenShowTime;
 
@@ -51,6 +51,7 @@ protected:
 
 	void SetSpeed(float NewSpeed);
 	void SetDelay(int NewDelay);
+	void WrapStars();
 	
 public:
 	TStars(TStarsRenderer *renderer);
@@ -61,7 +62,7 @@ public:
 	virtual void SetScreenSize(int width, int height);
 
 	virtual bool DrawStars();
-	virtual void MoveStars();
+	virtual void MoveStars(float MillisecondsElapsed);
 
 	void OnKeyDel();
 
@@ -69,6 +70,7 @@ public:
 
 	static void HandleKeyEventAll();
 	static void DrawStarsAll();
+	static void MoveStarsAll(float MillisecondsElapsed);
 	static void DestroyAll();
 	static void SetDelayAll(int NewDelay);
 };

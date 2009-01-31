@@ -12,7 +12,8 @@
 
 
 
-bool handleKey(WPARAM wParam, LPARAM lParam);
+bool handleKeyEvent(WPARAM wParam, LPARAM lParam);
+void handleTimerEvent(HWND hWnd);
 BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL WINAPI RegisterDialogClasses(HANDLE hInst);
 LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -57,23 +58,13 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 			return 0;
 
 		case WM_TIMER:
-			SendLogMessage(49, "WM_TIMER event, hWnd = %i", hWnd);
-			SendLogMessage(49, "Stars handle for window = %i", GetWindowLong(hWnd, 0));
-			static int LastDelay = DELAY;
-			if (LastDelay != DELAY)
-			{
-				SendLogMessage(90, "Delay changed = %i, resetting timer", DELAY);
-				KillTimer(hWnd, 1);
-				SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
-				LastDelay = DELAY;
-			}
-			TStars::DrawStarsAll();
+			handleTimerEvent(hWnd);
 			return 0;
 
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 			SendLogMessage(90, "WM_KEYDOWN OR KEYUP event, hWnd = %i", hWnd);
-			if (handleKey(wParam, lParam))
+			if (handleKeyEvent(wParam, lParam))
 			{
 				if (message == WM_KEYDOWN)
 					if (!lParam & (1 << 30))
@@ -119,9 +110,28 @@ LRESULT WINAPI ScreenSaverProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+void handleTimerEvent(HWND hWnd)
+{
+	SendLogMessage(49, "WM_TIMER event, hWnd = %i", hWnd);
+	SendLogMessage(49, "Stars handle for window = %i", GetWindowLong(hWnd, 0));
+	static int LastDelay = DELAY;
+	if (LastDelay != DELAY)
+	{
+		SendLogMessage(90, "Delay changed = %i, resetting timer", DELAY);
+		KillTimer(hWnd, 1);
+		SetTimer(hWnd, 1, (unsigned)(DELAY), NULL);
+		LastDelay = DELAY;
+	}
+	static int LastFrameTime = 0;
+	int CurrentFrameTime = clock();
+	SendLogMessage(100, "LastFrameTime %i, CurrentFrameTime %i", LastFrameTime, CurrentFrameTime);
+	TStars::MoveStarsAll(CurrentFrameTime - LastFrameTime);
+	//				TStars::MoveStarsAll(DELAY); // old behavior
+	TStars::DrawStarsAll();
+	LastFrameTime = CurrentFrameTime;
+}
 
-
-bool handleKey(WPARAM wParam, LPARAM lParam)
+bool handleKeyEvent(WPARAM wParam, LPARAM lParam)
 {
 	int newState;
 	if (lParam & (1 << 31))

@@ -39,18 +39,13 @@ TStars::TStars(TStarsRenderer *renderer)
 	
 	fRenderer = renderer;
 
-	fRadius = 8000;
-	fSpeed = 5 * DELAY;
-	fAngle = 0;
-	fStarCount = 10000;
-	
 	LoadSettings();
 
 	fHalfHeight = fHalfWidth = 0;
 	fHeight = fWidth = 0;
 	SetScreenSize(fRenderer->ScreenWidth, fRenderer->ScreenHeight);
 	x = y = z = NULL;
-	fDelayIterations = 0;
+	fTimeRemaining = 0;
 	fBiggestStarCount = 0;
 	InitStars();
 }
@@ -90,13 +85,13 @@ void TStars::CleanupStars()
 inline int GetRandomX()
 {
 //	TraceMethod trace(10, "TStars::GetRandomX");
-	return (rand() % 20000 - 10000) * 5000;
+	return (rand() - 16384) * 5000;
 }
 
 inline int GetRandomY()
 {
 //	TraceMethod trace(10, "TStars::GetRandomY");
-	return (rand() % 20000 - 10000) * 1000;
+	return (rand() - 16384) * 1000;
 }
 
 void TStars::InitStars()
@@ -165,11 +160,14 @@ void TStars::ResetDefaults()
 	TraceMethod trace(90, "TStars::ResetDefaults");
 	DELAY = 10;
 	CleanupStars();
-	fRadius = 8000;
-	fSpeed = 5 * DELAY;
-	fAngle = 0;
-	fStarCount = 10000;
-	fBiggestStarCount = 0;
+
+	settings->ResetDefaults();
+	fStarCount = settings->StarCount;
+	fRadius = settings->Radius;
+	fSpeed = settings->Speed;
+	fAngle = settings->Angle;
+	fSubpixelPositioning = settings->SubpixelPositioning;
+
 	InitStars();
 }
 
@@ -187,8 +185,6 @@ bool TStars::DrawStars()
 		if ((ActiveScreen == fCurInstance) || (ActiveScreen == 0))
 			fRenderer->ShowActiveScreen(ActiveScreenShowTime);
 	}
-
-	MoveStars();
 
 // This is the main section where the current star is drawn
 // Notice the lack of sines, cosines, arctangents, and square roots
@@ -227,46 +223,54 @@ bool TStars::DrawStars()
 	
 	if (!fRenderer->AfterDraw())
 		return false;
-
-	if (++fDelayIterations >= 100 / DELAY)
-		UpdateSettings();
 }
 
-void TStars::MoveStars()
+void TStars::WrapStars()
+{
+// If it reaches the defined edge of the X axis, wrap it around
+	for (int i = 0; i < fStarCount; i++)
+	{
+		if (x[i] < -XMAX / 2)
+			x[i] += XMAX;
+		else if (x[i] > XMAX / 2)
+			x[i] -= XMAX;
+	}
+// If it reaches the edge of visibility, wrap it around and reset X and Y axes
+	for (int i = 0; i < fStarCount; i++)
+	{
+		if (z[i] < 0)
+		{
+			z[i] += ZMAX;
+			x[i] = GetRandomX();
+			y[i] = GetRandomY();
+		} 
+		else if (z[i] > ZMAX)
+		{
+			z[i] -= ZMAX;
+			x[i] = GetRandomX();
+			y[i] = GetRandomY();
+		}
+	}
+}
+
+void TStars::MoveStars(float MillisecondsElapsed)
 {
 	TraceMethod trace(35, "TStars::MoveStars");
-	int i;
-	for (i = 0; i < fStarCount; i++)
+	xspeed = sin(fAngle) * fSpeed * XZCONVERSION * MillisecondsElapsed * 0.1f;
+	zspeed = cos(fAngle) * fSpeed * MillisecondsElapsed * 0.1f;
+	
+	for (int i = 0; i < fStarCount; i++)
 	{
 		x[i] -= xspeed;
 		z[i] -= zspeed;
 	}
-	if (fDelayIterations == 0)
+	
+	fTimeRemaining -= MillisecondsElapsed;
+	if (fTimeRemaining <= 0.0f)
 	{
-// If it reaches the defined edge of the X axis, wrap it around
-		for (i = 0; i < fStarCount; i++)
-		{
-			if (x[i] < -XMAX / 2)
-				x[i] += XMAX;
-			else if (x[i] > XMAX / 2)
-				x[i] -= XMAX;
-		}
-// If it reaches the edge of visibility, wrap it around and reset X and Y axes
-		for (i = 0; i < fStarCount; i++)
-		{
-			if (z[i] < 0)
-			{
-				z[i] += ZMAX;
-				x[i] = GetRandomX();
-				y[i] = GetRandomY();
-			} 
-			else if (z[i] > ZMAX)
-			{
-				z[i] -= ZMAX;
-				x[i] = GetRandomX();
-				y[i] = GetRandomY();
-			}
-		}
+		fTimeRemaining += 100.0f;
+		WrapStars();
+		UpdateSettings();
 	}
 }
 
@@ -274,7 +278,6 @@ void TStars::MoveStars()
 void TStars::UpdateSettings()
 {
 	TraceMethod trace(49, "TStars::UpdateSettings");
-	fDelayIterations = 0;
 	{
 		static bool last = false;
 		if (!last && KBState.tab)
@@ -386,13 +389,11 @@ void TStars::OnKeyDel()
 void TStars::SetSpeed(float NewSpeed)
 {
 	fSpeed = NewSpeed;
-	xspeed = sin(fAngle) * fSpeed * XZCONVERSION;
-	zspeed = cos(fAngle) * fSpeed;
 }
 
 void TStars::SetDelay(int NewDelay)
 {
-	SetSpeed(fSpeed * NewDelay / DELAY);
+//	SetSpeed(fSpeed * NewDelay / DELAY);
 }
 
 
@@ -400,11 +401,6 @@ void TStars::SetDelay(int NewDelay)
 bool TStars::LoadSettings()
 {
 	TraceMethod trace(90, "TStarsReg::LoadSettings()");
-	settings->StarCount = fStarCount;
-	settings->Radius = fRadius;
-	settings->Speed = fSpeed;
-	settings->Angle = fAngle;
-	settings->SubpixelPositioning = true;
 	settings->LoadSettings(fCurInstance);
 	fStarCount = settings->StarCount;
 	fRadius = settings->Radius;
@@ -437,6 +433,14 @@ void TStars::DrawStarsAll()
 	for (int i = 1; i <= InstanceCount; i++)
 		if (StarsList[i])
 			StarsList[i]->DrawStars();
+}
+
+void TStars::MoveStarsAll(float MillesecondsElapsed)
+{
+	TraceMethod trace(40, "TStars::DrawAllStars");
+	for (int i = 1; i <= InstanceCount; i++)
+		if (StarsList[i])
+			StarsList[i]->MoveStars(MillesecondsElapsed);
 }
 
 int TStars::RegisterInstance(TStars* instance)

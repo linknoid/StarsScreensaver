@@ -15,10 +15,10 @@ public:
 	virtual void SaveSettings(int Instance) = 0;
 	void ResetDefaults()
 	{
-		Radius = 8000;
+		Radius = 15000;
 		Speed = 5 * DELAY;
 		Angle = 0;
-		StarCount = 10000;
+		StarCount = 15000;
 		SubpixelPositioning = true;
 	}
 };
