@@ -63,4 +63,6 @@ History of versions:
 	Fixed a bug that was causing a crash with the configure dialog.
 
 1.7 (January 2009) Major optimization from 1.6 of the subpixel rendering mode.  Most of the improvement came from removing redundant calls to floor() and fixing a couple incorrect boundary conditions.
+	Fixed the handling of time in the Windows event loop when it takes longer than one tick to draw the screen.
+	Fixed a problem with the random number generator.  It generates a random number between 0 and 32768, and I took the modulus 20000, which lead to a major imbalance in stars towards the bottom right side of the screen.
 
