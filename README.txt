@@ -1,6 +1,3 @@
-By Bryce Wagner  
-brycew at wawonastaff.org
-
 Multimonitor support thanks to the Matrix screensaver (see file screensave.cpp
 for details) written by J Brown, found here:
 http://catch22.net/software/matrix.asp
@@ -9,12 +6,9 @@ I make no warranties about this code or what it could potentially do to your
 computer, but it should be safe.  You can use this code in any manner you
 see fit as long as I don't end up in a lawsuit because of it.
 
-I probably won't release many more versions, but if I do, they will be posted
-at http://linknoid.net/software/
 
-
-This screensaver is based off of my friend David Enderson's "Space" Screensaver
-for BeOS, which can be found here: http://www.bebits.com/app/303
+This screensaver is based off of my friend's "Space" Screensaver
+for BeOS.
 
 There are two programs, one is a standalone and requires an SDL.dll (not
 included).  But the main point of this is a Windows screensaver.
